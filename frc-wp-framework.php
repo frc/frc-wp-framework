@@ -5,6 +5,7 @@ Author: Taneli Heikkinen / Frantic Oy
 Description: Helper functions for speeding up site and other stuff.
 Licence: GPLv3 or later
 Copyright: Taneli Heikkinen
+Version: 0.1
 */
 
 require_once 'inc/helpers.php';
