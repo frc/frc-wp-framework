@@ -20,4 +20,4 @@ frc_set_options([
     'cache_whole_post_objects'  => true
 ]);
 
-define("FRC_WP_FRAMEWORK", true);
+define("FRC_WP_FRAMEWORK_INIT", true);
