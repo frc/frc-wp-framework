@@ -1,0 +1,11 @@
+{
+    "name": "taneliheikkinen/frc-wp-framework",
+    "type": "wordpress-plugin",
+    "homepage": "https://github.com/taneliheikkinen/frc-wp-framework",
+    "license": "GPLv3",
+    "description": "Frantic WP Framework. Experimental features and other helpers to aid development.",
+    "keywords": ["plugin","frc-wp-framework"],
+    "require": {
+        "composer/installers": "~1.0.6"
+    }
+}
