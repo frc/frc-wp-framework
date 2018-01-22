@@ -2,7 +2,7 @@
 /* 
 Plugin name: FRC WP Framework
 Author: Taneli Heikkinen / Frantic Oy
-Description: Helper functions for speeding up site and other stuff.
+Description: Frantic WP Framework. Experimental features and other helpers to aid development.
 Licence: GPLv3 or later
 Copyright: Taneli Heikkinen
 Version: 0.1
