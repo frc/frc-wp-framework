@@ -19,3 +19,5 @@ frc_set_options([
     'default_frc_post_class'    => 'FRC_Post',
     'cache_whole_post_objects'  => true
 ]);
+
+define("FRC_WP_FRAMEWORK", true);

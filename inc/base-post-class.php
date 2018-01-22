@@ -4,6 +4,8 @@ class FRC_Post_Base_Class {
     public      $categories;
     public      $extra_cache_data;
 
+    public      $included_acf_fields;
+
     public      $cache_options = [
                     'cache_whole_object'    => true,
                     'cache_acf_fields'      => false,
@@ -70,6 +72,15 @@ class FRC_Post_Base_Class {
         if($this->cache_options['cache_acf_fields']) {
             if(($this->acf_fields = get_transient('_frc_api_post_acf_field_' . $post_id)) === false && function_exists('get_fields')) {
                 $this->acf_fields = get_fields($post_id);
+
+                //If included acf fields is set, only include those acf fields
+                if(!empty($this->included_acf_fields)) {
+                    foreach($this->acf_fields as $acf_key => $acf_value) {
+                        if(!in_array($acf_key, $this->included_acf_fields)) {
+                            unset($this->acf_fields[$acf_key]);
+                        }
+                    }
+                }
 
                 set_transient('_frc_api_post_acf_field_' . $post_id, $this->acf_fields);
             }
