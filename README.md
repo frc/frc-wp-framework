@@ -6,6 +6,11 @@ Under heavy development.
 
 # Instructions
 
+## Requirements
+
+* PHP 7.1
+* Advanced custom fields (and pro to use the component system as it is based on the flexible field type)
+
 ## Introduction
 
 The FRC WP Framework consists of multiple different systems. They are:
@@ -31,6 +36,8 @@ class My_Custom_Post_Type inherits FRC_Post_Base_Class {
 }
 ```
 
+That's it. You've got a custom post type. It doesn't contain anything that interesting, but it is a basic run of the mill post -like post type.
+
 Now that post type has been created. You can define some schemas to it. You can assign taxonomies for the custom post type.
 
 Like so:
@@ -45,6 +52,8 @@ class My_Custom_Post_Type inherits FRC_Post_Base_Class {
 
 If you want to define more specifically the taxonomys arguments you can just:
 ```
+... 
+
 public $taxonomies = [
     'my_custom_taxonomy',
     'another_my_custom_taxonomy' => [
@@ -55,6 +64,8 @@ public $taxonomies = [
         additional arguments here
     ]
 ];
+
+...
 ```
 These arguments follow the basic wordpress [register_taxonomy](https://codex.wordpress.org/Function_Reference/register_taxonomy) functions arguments. There are default values preset all the time and these arguments just overwrite those in the defaut arguments.
 
@@ -110,6 +121,8 @@ The custom post type event member functions are:
 * `prepared()` (Called after the custom post type objects preparing phase is done)
 * `saved()` (Called whenever `save()` has been called)
 
-
 ## Component system
- 
+
+Components are a bit more complex. 
+
+More info here...
