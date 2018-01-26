@@ -11,7 +11,7 @@ class FRC_Post_Base_Class {
                     'cache_acf_fields'      => true,
                     'cache_categories'      => true,
                     'cache_component_list'  => true,
-                    'cache_components'      => true
+                    'cache_components'      => false
                 ];
 
     protected   $keep_build_data    = false;
@@ -134,6 +134,8 @@ class FRC_Post_Base_Class {
     }
 
     public function get_components () {
+        global $frc_component_data_locations;
+
         $transient_key = '_frc_api_post_components_' . $this->ID;
 
         if(!$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {

@@ -19,7 +19,7 @@ require_once 'inc/classes/base-component-class.php';
 require_once 'inc/custom-post-types.php';
 require_once 'inc/query.php';
 
-require_once 'inc/components/components.php';
+require_once 'inc/basic-components/components.php';
 
 
 //Set the default options

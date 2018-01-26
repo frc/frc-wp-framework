@@ -204,18 +204,30 @@ function frc_api_add_render_transient_data ($transient_key, $hooks) {
     frc_api_set_render_transient_data($transient_data);
 }
 
+function frc_api_get_component_path ($component) {
+    global $frc_component_data_locations;
 
-//TODO: Figure out the best component organizing system
-function frc_api_load_components_in_directory ($components_directory, $views_directory) {
+    return $frc_component_data_locations[$component];
+}
+
+function frc_api_load_components_in_directory ($components_directory) {
+    global $frc_component_data_locations;
+
     $components_directory = rtrim($components_directory, "/");
-    $views_directory      = rtrim($views_directory, "/");
 
-    $components_to_require = [];
-    
-    $components = glob($components_directory . '/*.php');
+    $contents = array_diff(scandir($components_directory), ['..', '.']);
 
-    foreach($components as $component_file) {
-        require_once $component_file;
+    $component_dirs = [];
+    foreach($contents as $content) {
+        $dir = $components_directory . '/' . $content;
+
+        if(is_dir($dir)) {
+            if(file_exists($dir . '/component.php') && file_exists($dir . '/view.php')) {
+                $frc_component_data_locations[$content] = $dir;
+
+                require_once $dir . '/component.php';
+            }
+        }
     }
 }
 

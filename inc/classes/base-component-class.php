@@ -8,8 +8,13 @@ class FRC_Base_Component_Class implements FRC_Base_Component_Interface {
     public $component_data          = [];
     
     public $component_view_file     = "";
+    public $component_path          = "";
 
-    final public function prepare ($data) {
+    public function __construct () {
+        $this->set_component_path();
+    }
+
+    public function prepare ($data) {
         $this->component_data = $data;
 
         $this->init();
@@ -31,6 +36,12 @@ class FRC_Base_Component_Class implements FRC_Base_Component_Interface {
         $render_data = $this->prepare_data();
 
         return frc_api_render($this->component_view_file, $render_data);
+    }
+
+    public function set_component_path () {
+        $this->component_path = frc_api_get_component_path(get_class($this));
+
+        $this->component_view_file = $this->component_path . '/view.php';
     }
 
     public function get_key_name () {
