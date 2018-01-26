@@ -143,16 +143,21 @@ Misc:
 * Optionally you can define the `$included_acf_fields` -member to hold all the `acf_schema` field names that the post object loads up in when the object is loaded.
 * `$served_from_cache` -member is defined true or false when the object is retrieved from cache. You can use this for debugging.
 
+There is also a `$cache_options` -member in the base class. You can overwrite these to suit your caching needs:
+```
+public $cache_options = [
+    'cache_whole_object'    => true,
+    'cache_acf_fields'      => true,
+    'cache_categories'      => true,
+    'cache_component_list'  => true,
+    'cache_components'      => false
+];
+```
 
 ## Component system
 
-Components are a bit more complex. 
-
-More info here...
-
+...
 
 ## Helper functions
 
-```
-
-```
+...

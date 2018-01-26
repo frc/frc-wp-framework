@@ -4,7 +4,10 @@ class FRC_Post_Base_Class {
     public      $categories;
     public      $components;
 
+    public      $component_types;
     public      $included_acf_fields;
+
+    public      $options;
 
     public      $cache_options = [
                     'cache_whole_object'    => true,

@@ -8,7 +8,6 @@ class Basic_Quote_Component extends FRC_Component_Base_Class {
             'type'  => 'wysiwyg'
         ]
     ];
-
     public function init () {
     }
 }

@@ -76,7 +76,7 @@ function frc_api_class_name_to_proper ($class_name) {
 
 function frc_api_proof_acf_schema_groups ($acf_schema_groups) {
     if(!isset($acf_schema_groups['key']))
-        $acf_schema_groups['key'] = frc_api_proper_name_to_key($acf_schema_groups['title']);
+        $acf_schema_groups['key'] = md5(frc_api_name_to_key($acf_schema_groups['title']));
 
     $acf_schema_groups['fields'] = frc_api_proof_acf_schema($acf_schema_groups['fields'], $acf_schema_groups['key'] . '_fields');
 
@@ -86,7 +86,7 @@ function frc_api_proof_acf_schema_groups ($acf_schema_groups) {
 function frc_api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     foreach($acf_schema as $key => $field) {
         if(!isset($field['key'])) {
-            $acf_schema[$key]['key'] = $prefix . "_" . $field['name'];
+            $acf_schema[$key]['key'] = md5($prefix . "_" . $field['name']);
         }
 
         if(isset($field['sub_fields'])) {
@@ -117,47 +117,6 @@ function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
     }
 
     return $required_data;
-}
-
-function frc_api_acf_schema_groups_components($acf_schema_groups) {
-    $acf_schema_groups['fields'] = frc_api_acf_schema_components($acf_groups['fields'], $acf_schema_groups['key'] . '_fields');
-
-    return $acf_schema_groups;
-}
-
-function frc_api_acf_schema_components ($acf_schema, $prefix) {
-    foreach($acf_schema as $key => $field) {
-        if(isset($field['type']) && $field['type'] == 'frc_components') {
-            $acf_schema[$key]['type'] = 'flexible_content';
-
-            foreach(frc_api_get_base_class_children("FRC_Component_Base_Class") as $component) {
-                $reference_class = new $component();
-
-                if(isset($field['frc_component_type'])
-                    && !empty($field['frc_component_type'])
-                    && $reference_class->component_type != $field['frc_component_type'])
-                        continue;                    
-
-                $component_schema = frc_api_proof_acf_schema([[
-                    'name'       => $reference_class->key_name ?? $reference_class->get_key_name(),
-                    'label'      => $reference_class->proper_name ?? $reference_class->get_label()
-                ]], $prefix . '_' . $reference_class->get_key_name())[0];
-                
-                $child_schemas = frc_api_proof_acf_schema($reference_class->acf_schema, $prefix . '_' . $reference_class->get_key_name());
-
-                $component_schema['sub_fields'] = $child_schemas;
-
-                $acf_schema[$key]['layouts'][$component_schema['key']] = $component_schema;
-
-            }
-        } else if(isset($field['sub_fields'])) {
-            $acf_schema[$key]['sub_fields'] = frc_api_acf_schema_components($field['sub_fields'], $prefix);
-        } else if(isset($field['layouts'])) {
-            $acf_schema[$key]['layouts'] = frc_api_acf_schema_components($field['layouts'], $prefix);
-        }
-    }
-
-    return $acf_schema;
 }
 
 function frc_api_get_base_class_children ($base_class = false) {

@@ -7,9 +7,9 @@ function frc_api_manage_custom_post_types () {
     foreach(frc_api_get_base_class_children("FRC_Post_Base_Class") as $post_type_key_name => $class_name) {
         $reference_class = new $class_name();
 
-        $post_type_proper_name = $reference_class->proper_name ?? frc_api_class_name_to_proper($class_name);
+        $post_type_proper_name = $reference_class->options['proper_name'] ?? frc_api_class_name_to_proper($class_name);
 
-        $post_type_key_name = $reference_class->key_name ?? $post_type_key_name;
+        $post_type_key_name = $reference_class->options['key_name'] ?? $post_type_key_name;
 
         $default_register_post_type_args = [
             'labels' => [
@@ -73,8 +73,7 @@ function frc_api_manage_custom_post_types () {
 
             if($options_acf_groups) {
                 $options_acf_groups = frc_api_proof_acf_schema_groups($options_acf_groups);
-                $options_acf_groups = frc_api_acf_schema_groups_components($options_acf_groups);
-
+                
                 acf_add_local_field_group($options_acf_groups);
             } else {   
                 $options_acf_fields = $reference_class->acf_schema;
@@ -83,25 +82,67 @@ function frc_api_manage_custom_post_types () {
                 if(isset($options_acf_fields) && !empty($options_acf_fields)) {
                     $field_group_key = str_replace("_", "", $post_type_key_name . '_fields');
                     
-                    $options_acf_fields = frc_api_acf_schema_components($options_acf_fields, $field_group_key);
-                    
                     $options_acf_fields = frc_api_proof_acf_schema($options_acf_fields, $field_group_key);
                     
-                    acf_add_local_field_group([
-                        'key'       => $field_group_key,
-                        'title'     => $reference_class->acf_group_name ?? $post_type_proper_name . ' Fields',
+                    acf_add_local_field_group(frc_api_proof_acf_schema_groups([
+                        'title'     => $reference_class->options['acf_group_name'] ?? $post_type_proper_name . ' Fields',
                         'fields'    => $options_acf_fields, 
-                        'location' => array (
-                            array (
-                                array (
+                        'location' => [
+                            [
+                                [
                                     'param' => 'post_type',
                                     'operator' => '==',
                                     'value' => $post_type_key_name,
-                                ),
-                            ),
-                        )
-                    ]);
+                                ]
+                            ]
+                        ]
+                    ]));
                 }
+            }
+
+            //Component initializations
+            $component_types = $reference_class->component_types ?? [];
+
+            if(!empty($component_types)) {
+                if(is_string($component_types))
+                    $component_types = [$component_types];
+                
+                $component_acf_fields = [];
+
+                foreach($component_types as $component_type) {
+                    foreach(frc_api_get_components_of_type($component_type) as $component) {
+                        $reference_class = new $component();
+                        $component_acf_fields[frc_api_name_to_key($component)] = [
+                            'name'       => frc_api_name_to_key($component),
+                            'label'      => frc_api_class_name_to_proper($component),
+                            'sub_fields' => $reference_class->acf_schema
+                        ];
+                    }
+                }
+                
+                $component_field_group_args = frc_api_proof_acf_schema_groups([
+                    'title'     => $post_type_proper_name . ' Components',
+                    'fields'    => [
+                        [
+                            'key'       => $post_type_key_name . '_components',
+                            'label'     => 'Components',
+                            'name'      => 'components',
+                            'type'      => 'flexible_content',
+                            'layouts'   => $component_acf_fields
+                        ]
+                    ],
+                    'location' => [
+                        [
+                            [
+                                'param' => 'post_type',
+                                'operator' => '==',
+                                'value' => $post_type_key_name,
+                            ]
+                        ]
+                    ]
+                ]);
+
+                acf_add_local_field_group($component_field_group_args);
             }
         }
     }

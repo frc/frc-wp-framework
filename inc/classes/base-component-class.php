@@ -25,9 +25,11 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
     public function init () {
     }
 
-    public function prepare_data () {
-        $data = $this->component_data;
+    public function prepare_data ($data) {
         unset($data['acf_fc_layout']);
+        
+        $data['component'] = $this;
+
         return $data;
     }
 
@@ -35,7 +37,9 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
         if(empty($this->component_view_file))
             return;
 
-        $render_data = $this->prepare_data();
+        $component_data = $this->component_data;
+
+        $render_data = $this->prepare_data($component_data);
 
         return frc_api_render($this->component_view_file, $render_data);
     }
