@@ -8,7 +8,7 @@ Copyright: Taneli Heikkinen
 Version: 0.1
 */
 
-require_once 'inc/helpers.php';
+require_once 'inc/internal-helpers.php';
 require_once 'inc/functions.php';
 require_once 'inc/transient-management.php';
 

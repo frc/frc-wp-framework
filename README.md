@@ -4,6 +4,14 @@ Frantic WP Framework. Experimental features and other helpers to aid development
 Under heavy development.
 **DO NOT USE YET.**
 
+# Table of contents
+
+* [Custom post type system](#custom-post-type-system)
+* [Component system](#component-system)
+* [Helper functions](#helper-functions)
+
+
+
 # Instructions
 
 ## Requirements
