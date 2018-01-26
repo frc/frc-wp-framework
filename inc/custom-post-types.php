@@ -7,7 +7,7 @@ function frc_api_manage_custom_post_types () {
     foreach(frc_api_get_base_class_children("FRC_Post_Base_Class") as $post_type_key_name => $class_name) {
         $reference_class = new $class_name();
 
-        $post_type_proper_name = frc_api_class_name_to_proper($class_name);
+        $post_type_proper_name = $reference_class->proper_name ?? frc_api_class_name_to_proper($class_name);
 
         $post_type_key_name = $reference_class->key_name ?? $post_type_key_name;
 
@@ -73,6 +73,7 @@ function frc_api_manage_custom_post_types () {
 
             if($options_acf_groups) {
                 $options_acf_groups = frc_api_proof_acf_schema_groups($options_acf_groups);
+                $options_acf_groups = frc_api_acf_schema_groups_components($options_acf_groups);
 
                 acf_add_local_field_group($options_acf_groups);
             } else {   
@@ -105,4 +106,5 @@ function frc_api_manage_custom_post_types () {
         }
     }
 }
+
 add_action('init', "frc_api_manage_custom_post_types");

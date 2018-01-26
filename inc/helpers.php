@@ -119,12 +119,18 @@ function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
     return $required_data;
 }
 
+function frc_api_acf_schema_groups_components($acf_schema_groups) {
+    $acf_schema_groups['fields'] = frc_api_acf_schema_components($acf_groups['fields'], $acf_schema_groups['key'] . '_fields');
+
+    return $acf_schema_groups;
+}
+
 function frc_api_acf_schema_components ($acf_schema, $prefix) {
     foreach($acf_schema as $key => $field) {
         if(isset($field['type']) && $field['type'] == 'frc_components') {
             $acf_schema[$key]['type'] = 'flexible_content';
 
-            foreach(frc_api_get_base_class_children("FRC_Base_Component_Class") as $component) {
+            foreach(frc_api_get_base_class_children("FRC_Component_Base_Class") as $component) {
                 $reference_class = new $component();
 
                 if(isset($field['frc_component_type'])
@@ -133,8 +139,8 @@ function frc_api_acf_schema_components ($acf_schema, $prefix) {
                         continue;                    
 
                 $component_schema = frc_api_proof_acf_schema([[
-                    'name'       => $reference_class->get_key_name(),
-                    'label'      => $reference_class->get_label()
+                    'name'       => $reference_class->key_name ?? $reference_class->get_key_name(),
+                    'label'      => $reference_class->proper_name ?? $reference_class->get_label()
                 ]], $prefix . '_' . $reference_class->get_key_name())[0];
                 
                 $child_schemas = frc_api_proof_acf_schema($reference_class->acf_schema, $prefix . '_' . $reference_class->get_key_name());
@@ -233,7 +239,7 @@ function frc_api_load_components_in_directory ($components_directory) {
 
 function frc_api_get_components_of_type ($component_type) {
     $components = [];
-    foreach(frc_api_get_base_class_children("FRC_Base_Component_Class") as $component) {
+    foreach(frc_api_get_base_class_children("FRC_Component_Base_Class") as $component) {
         $reference_class = new $component();
 
         if($reference_class->component_type != $component_type)

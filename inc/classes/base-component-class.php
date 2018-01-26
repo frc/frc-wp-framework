@@ -1,7 +1,9 @@
 <?php
 
-class FRC_Base_Component_Class implements FRC_Base_Component_Interface {
+class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
     public $acf_schema              = [];
+    public $acf_schema_groups       = [];
+
     public $child_components        = [];
     public $component_type          = "basic";
 

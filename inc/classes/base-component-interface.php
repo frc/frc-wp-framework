@@ -1,4 +1,4 @@
 <?php
 
-interface FRC_Base_Component_Interface {
+interface FRC_Component_Base_Interface {
 }
