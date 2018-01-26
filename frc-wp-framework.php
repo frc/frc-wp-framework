@@ -11,9 +11,16 @@ Version: 0.1
 require_once 'inc/helpers.php';
 require_once 'inc/functions.php';
 require_once 'inc/transient-management.php';
+
+require_once 'inc/classes/base-post-class.php';
+require_once 'inc/classes/base-component-interface.php';
+require_once 'inc/classes/base-component-class.php';
+
 require_once 'inc/custom-post-types.php';
-require_once 'inc/base-post-class.php';
 require_once 'inc/query.php';
+
+require_once 'inc/components/components.php';
+
 
 //Set the default options
 frc_set_options([

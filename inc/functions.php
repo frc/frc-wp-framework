@@ -35,7 +35,19 @@ function frc_add_to_local_cache_stack ($post) {
         array_shift($frc_local_cache_stack);
 }
 
+function frc_set_local_cache_stack ($posts) {
+    global $frc_local_cache_stack;
+
+    $cache_posts = [];
+    foreach($posts as $post) {
+        $cache_posts[$post->ID] = $post;
+    }
+
+    $frc_local_cache_stack = $cache_posts;
+}
+
 function frc_get_post ($post_id = null, $get_fresh = false) {
+
     if(($post = frc_get_from_local_cache_stack($post_id)) !== false) {
         $post->remove_unused_post_data();
         return $post;
@@ -51,6 +63,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     if($frc_options['cache_whole_post_objects'] && !$get_fresh) {
         if(($post = get_transient("_frc_post_whole_object_" . $post_id)) !== false) {
             $post->remove_unused_post_data();
+            $post->served_from_cache = true;
             frc_add_to_local_cache_stack($post);
             return $post;
         }
@@ -78,6 +91,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     $post = new $post_class_to_use($post_id, $post_class_args);
 
     if($frc_options['cache_whole_post_objects']) {
+
         set_transient("_frc_post_whole_object_" . $post_id, $post);
     }
 
@@ -86,14 +100,21 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     return $post;
 }
 
-function frc_add_class ($class_name) {
-    global $frc_additional_classes;
-
-    $frc_additional_classes[] = $class_name;
+function frc_render ($file, $data) {
+    ob_start();
+    extract((array) $data);
+    require_once $file;
+    return ob_get_clean();
 }
 
-function frc_exclude_class ($class_name) {
+function frc_add_class ($class_name, $base_class) {
+    global $frc_additional_classes;
+
+    $frc_additional_classes[$base_class][] = $class_name;
+}
+
+function frc_exclude_class ($class_name, $base_class) {
     global $frc_excluded_classes;
 
-    $frc_excluded_classes[] = $class_name;
+    $frc_excluded_classes[$base_class][] = $class_name;
 }

@@ -3,6 +3,7 @@ class FRC_Post_Base_Class {
     public      $acf_fields;
     public      $categories;
     public      $extra_cache_data;
+    public      $components;
 
     public      $included_acf_fields;
 
@@ -13,7 +14,7 @@ class FRC_Post_Base_Class {
                 ];
 
     protected   $keep_build_data    = false;
-    private     $served_from_cache  = false;
+    public      $served_from_cache  = false;
     private     $post_constructed   = false;
 
     public function __construct ($post_id = null, $cache_options = []) {
@@ -21,6 +22,8 @@ class FRC_Post_Base_Class {
         
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
+
+            $this->prepare_component_list();
 
             $this->remove_unused_post_data();
             
@@ -37,6 +40,21 @@ class FRC_Post_Base_Class {
             unset($this->acf_schema);
             unset($this->acf_schema_groups);
             unset($this->args);
+        }
+    }
+
+    private function prepare_component_list ($nested_element = false) {
+        if(!$nested_element)
+            $nested_element = $this->acf_schema;
+
+        foreach($nested_element as $schema) {
+            if($schema['type'] == 'frc_components') {
+                foreach(frc_api_get_components_of_type($schema['frc_component_type']) as $component) {
+                    $reference_class = new $component();
+
+                    $this->components[$schema['name']][$reference_class->get_key_name()] = $component;
+                }
+            }
         }
     }
 
@@ -161,6 +179,25 @@ class FRC_Post_Base_Class {
 
     protected function saved () {
     }
+
+    public function get_components () {
+        $components = [];
+
+        foreach($this->acf_fields as $key => $field) {
+            if(!isset($this->components[$key]))
+                continue;
+
+            foreach($this->acf_fields[$key] as $component_key => $component_field) {
+                $component_class = $this->components[$key][$component_field['acf_fc_layout']];
+                
+                $new_component = new $component_class();
+                $new_component->prepare($component_field);
+                $components[] = $new_component;
+            }
+        }
+
+        return $components;
+    }
 }
 
 /*
@@ -170,4 +207,4 @@ class FRC_Post_Base_Class {
 */
 class FRC_Post extends FRC_Post_Base_Class {
 }
-frc_exclude_class("FRC_Post");
+frc_exclude_class("FRC_Post", "FRC_Post_Base_Class");

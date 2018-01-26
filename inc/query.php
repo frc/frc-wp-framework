@@ -13,19 +13,21 @@ class FRC_WP_Query extends WP_Query {
     }
 
     public function get_posts () {
+        global $frc_in_wp_query;
+
         if(!$this->cache_results)
             return parent::get_posts();
 
         $transient_key = "_frc_wp_query_" . md5(serialize($this->query));
 
         if(($query_result = get_transient($transient_key)) === false) {
-            $wp_query_transient_list = frc_api_get_wp_query_list();
-
+            $frc_in_wp_query = true;
             $tmp_query_result = parent::get_posts();
+            $frc_in_wp_query = false;
 
             $wp_query_transient_list[] = $transient_key;
 
-            frc_api_set_wp_query_list($wp_query_transient_list);
+            frc_api_add_transient_to_group_list("wp_query", $transient_key);
 
             $query_result = [];
             foreach($tmp_query_result as $query_post) {
@@ -44,7 +46,7 @@ class FRC_WP_Query extends WP_Query {
 }
 
 add_action('save_post', function () {
-    $wp_query_transient_list = frc_get_wp_query_list();
+    $wp_query_transient_list = frc_api_get_transient_group_list("wp_query");
 
     $new_transient_list = [];
     foreach($wp_query_transient_list as $transient) {
@@ -53,5 +55,5 @@ add_action('save_post', function () {
         $new_transient_list = $transient;
     }
 
-    frc_set_wp_query_list($new_transient_list);
+    frc_api_set_transient_group_list("wp_query", $new_transient_list);
 });

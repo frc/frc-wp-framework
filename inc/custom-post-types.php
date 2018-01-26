@@ -4,7 +4,7 @@
     Let's construct and manage everything
 */
 function frc_api_manage_custom_post_types () {
-    foreach(frc_api_get_base_post_children() as $post_type_key_name => $class_name) {
+    foreach(frc_api_get_base_class_children("FRC_Post_Base_Class") as $post_type_key_name => $class_name) {
         $reference_class = new $class_name();
 
         $post_type_proper_name = frc_api_class_name_to_proper($class_name);
@@ -82,8 +82,10 @@ function frc_api_manage_custom_post_types () {
                 if(isset($options_acf_fields) && !empty($options_acf_fields)) {
                     $field_group_key = str_replace("_", "", $post_type_key_name . '_fields');
                     
+                    $options_acf_fields = frc_api_acf_schema_components($options_acf_fields, $field_group_key);
+                    
                     $options_acf_fields = frc_api_proof_acf_schema($options_acf_fields, $field_group_key);
-
+                    
                     acf_add_local_field_group([
                         'key'       => $field_group_key,
                         'title'     => $reference_class->acf_group_name ?? $post_type_proper_name . ' Fields',
