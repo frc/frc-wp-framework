@@ -126,6 +126,32 @@ class FRC_Post_Base_Class {
         }
     }
 
+    public function get_components () {
+        
+        $transient_key = '_frc_api_post_components_' . $this->ID;
+        if(($components = get_transient($transient_key)) === false) {
+            $components = [];
+
+            foreach($this->acf_fields as $key => $field) {
+                if(!isset($this->components[$key]))
+                    continue;
+    
+                foreach($this->acf_fields[$key] as $component_key => $component_field) {
+                    $component_class = $this->components[$key][$component_field['acf_fc_layout']];
+                    
+                    $new_component = new $component_class();
+                    $new_component->prepare($component_field);
+                    $components[] = $new_component;
+                }
+            }
+
+            set_transient($transient_key, $components);
+            frc_api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
+        }
+
+        return $components;
+    }
+
     public function fetch_extra_cache_data ($post_id) {
         $data = get_transient("_frc_api_post_object_extra_data_" . $post_id);
 
@@ -187,24 +213,6 @@ class FRC_Post_Base_Class {
     protected function saved () {
     }
 
-    public function get_components () {
-        $components = [];
-
-        foreach($this->acf_fields as $key => $field) {
-            if(!isset($this->components[$key]))
-                continue;
-
-            foreach($this->acf_fields[$key] as $component_key => $component_field) {
-                $component_class = $this->components[$key][$component_field['acf_fc_layout']];
-                
-                $new_component = new $component_class();
-                $new_component->prepare($component_field);
-                $components[] = $new_component;
-            }
-        }
-
-        return $components;
-    }
 }
 
 /*
