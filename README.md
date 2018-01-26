@@ -42,6 +42,8 @@ You can use these objects just like regular WP_Post objects. These objects are f
 
 ```
 $post = frc_get_post($post_id);
+
+echo $post->ID;
 ```
 
 Now that post type has been created. You can define some schemas to it. You can assign taxonomies for the custom post type.
