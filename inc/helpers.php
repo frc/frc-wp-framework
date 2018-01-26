@@ -101,6 +101,24 @@ function frc_api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     return $acf_schema;
 }
 
+function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
+    $transient_key = '_frc_render_' . md5($file . serialize($data));
+
+    if(!$cache_result_hooks || ($required_data = get_transient($transient_key)) === false) {
+        ob_start();
+        extract((array) $data);
+        require_once $file;
+        $required_data = ob_get_clean();
+
+        if($cache_result_hooks) {
+            set_transient($transient_key, $required_data, WEEK_IN_SECONDS);
+            frc_api_add_render_transient_data($transient_key, $cache_result_hooks);
+        }
+    }
+
+    return $required_data;
+}
+
 function frc_api_acf_schema_components ($acf_schema, $prefix) {
     foreach($acf_schema as $key => $field) {
         if(isset($field['type']) && $field['type'] == 'frc_components') {
@@ -169,6 +187,23 @@ function frc_api_get_base_class_children ($base_class = false) {
 
     return $output;
 }
+
+function frc_api_get_render_transient_data () {
+    return get_transient("_frc_render_transient_data") ? get_transient("_frc_render_transient_data") : [];
+}
+
+function frc_api_set_render_transient_data($data) {
+    return set_transient("_frc_render_transient_data", $data);
+}
+
+function frc_api_add_render_transient_data ($transient_key, $hooks) {
+    $transient_data = frc_api_get_render_transient_data();
+
+    $transient_data[$transient_key] = $hooks;
+
+    frc_api_set_render_transient_data($transient_data);
+}
+
 
 //TODO: Figure out the best component organizing system
 function frc_api_load_components_in_directory ($components_directory, $views_directory) {

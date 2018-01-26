@@ -107,11 +107,13 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     return $post;
 }
 
-function frc_render ($file, $data) {
-    ob_start();
-    extract((array) $data);
-    require_once $file;
-    return ob_get_clean();
+function frc_get_render ($file, $data = [], $cache_result_hooks = false) {
+    $file = get_template_directory() . "/" . trim($file, "/");
+    return frc_api_render($file, $data, $cache_result_hooks);
+}
+
+function frc_render ($file, $data = [], $cache_result_hooks = false) {
+    echo frc_get_render($file, $data, $cache_result_hooks);
 }
 
 function frc_add_class ($class_name, $base_class) {

@@ -188,7 +188,6 @@ class FRC_Post_Base_Class {
 
     protected function saved () {
     }
-
 }
 
 /*

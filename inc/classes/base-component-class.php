@@ -30,7 +30,7 @@ class FRC_Base_Component_Class implements FRC_Base_Component_Interface {
 
         $render_data = $this->prepare_data();
 
-        return frc_render($this->component_view_file, $render_data);
+        return frc_api_render($this->component_view_file, $render_data);
     }
 
     public function get_key_name () {
