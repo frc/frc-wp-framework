@@ -62,6 +62,7 @@ class FRC_Post_Base_Class {
         $this->post_constructed = true;
 
         $transient_key = '_frc_api_post_object_' . $post_id;
+
         if(!$this->cache_options['cache_whole_object'] || ($transient_data = get_transient($transient_key)) === false) {
             $post = get_object_vars(WP_Post::get_instance($post_id));
 
@@ -71,8 +72,10 @@ class FRC_Post_Base_Class {
 
             $transient_data = ['post' => $post, 'acf_fields' => $this->acf_fields, "categories" => $this->categories];
 
-            if($this->cache_options['cache_whole_object'])
+            if($this->cache_options['cache_whole_object']) {
+                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                 set_transient($transient_key, $transient_data);
+            }
         } else {
             $this->served_from_cache = true;
         }
@@ -88,7 +91,8 @@ class FRC_Post_Base_Class {
 
     public function construct_acf_fields ($post_id) {
         if($this->cache_options['cache_acf_fields']) {
-            if(($this->acf_fields = get_transient('_frc_api_post_acf_field_' . $post_id)) === false && function_exists('get_fields')) {
+            $transient_key = '_frc_api_post_acf_field_' . $post_id;
+            if(($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
                 $this->acf_fields = get_fields($post_id);
 
                 //If included acf fields is set, only include those acf fields
@@ -100,7 +104,8 @@ class FRC_Post_Base_Class {
                     }
                 }
 
-                set_transient('_frc_api_post_acf_field_' . $post_id, $this->acf_fields);
+                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+                set_transient($transient_key, $this->acf_fields);
             }
         } else {
             $this->acf_fields = get_fields($post_id);
@@ -108,12 +113,14 @@ class FRC_Post_Base_Class {
     }
 
     public function construct_categories ($post_id) {
-        if(($this->categories = get_transient('_frc_api_post_categories_' . $post_id)) === false) {
+        $transient_key = '_frc_api_post_categories_' . $post_id;
+        if(($this->categories = get_transient($transient_key)) === false) {
             foreach(get_categories($post_id) as $category) {
                 $this->categories[] = get_object_vars($category);
             }
 
             if($this->cache_options['cache_categories']) {
+                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                 set_transient('_frc_api_post_categories_' . $post_id, $this->categories);
             }
         }
@@ -160,7 +167,7 @@ class FRC_Post_Base_Class {
             update_field($field_key, $field_value, $this->ID);
         }
 
-        delete_transient('_frc_api_post_object_' . $this->ID);
+        frc_api_delete_transients_in_group("post_" . $this->ID);
 
         $this->saved();
 

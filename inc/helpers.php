@@ -48,6 +48,15 @@ function frc_api_set_post_class_type ($post_id, $class_type) {
     return true;
 }
 
+function frc_api_remove_post_class_type($post_id) {
+    $class_types = get_transient('_frc_post_class_types');
+
+    unset($class_types[$post_id]);
+
+    set_transient('_frc_post_class_types', $class_types);
+
+    return true;
+}
 
 function frc_api_name_to_key ($name) {
     $name = str_replace("-", "_", $name);

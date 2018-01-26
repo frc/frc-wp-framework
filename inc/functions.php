@@ -60,8 +60,10 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     else if(empty($post_id) && isset($GLOBALS['post']))
         $post_id = $GLOBALS['post']->ID;
 
+    $whole_object_transient_key = "_frc_post_whole_object_" . $post_id;
+    
     if($frc_options['cache_whole_post_objects'] && !$get_fresh) {
-        if(($post = get_transient("_frc_post_whole_object_" . $post_id)) !== false) {
+        if(($post = get_transient($whole_object_transient_key)) !== false) {
             $post->remove_unused_post_data();
             $post->served_from_cache = true;
             frc_add_to_local_cache_stack($post);
@@ -71,7 +73,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
     //Save the class of the post so we don't have to figure it out every time
     if(($post_class_to_use = frc_api_get_post_class_type($post_id)) === false) {
-        $children = frc_api_get_base_post_children();
+        $children = frc_api_get_base_class_children("FRC_Post_Base_Class");
 
         if(isset($children[get_post_type($post_id)])) {
             $post_class_to_use = $children[get_post_type($post_id)];
@@ -92,7 +94,9 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
     if($frc_options['cache_whole_post_objects']) {
 
-        set_transient("_frc_post_whole_object_" . $post_id, $post);
+        set_transient($whole_object_transient_key, $post);
+
+        frc_api_add_transient_to_group_list("post_" . $post_id, $whole_object_transient_key);
     }
 
     frc_add_to_local_cache_stack($post);
