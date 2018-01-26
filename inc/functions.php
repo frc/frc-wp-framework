@@ -86,7 +86,10 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
     if($frc_options['cache_whole_post_objects']) {
         $post_class_args = [
-            'cache_whole_object' =>  false
+            'cache_whole_object'    => false,
+            'cache_acf_fields'      => false,
+            'cache_categories'      => false,
+            'cache_component_list'  => false
         ];
     }
 

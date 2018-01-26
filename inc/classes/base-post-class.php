@@ -2,15 +2,16 @@
 class FRC_Post_Base_Class {
     public      $acf_fields;
     public      $categories;
-    public      $extra_cache_data;
     public      $components;
 
     public      $included_acf_fields;
 
     public      $cache_options = [
                     'cache_whole_object'    => true,
-                    'cache_acf_fields'      => false,
-                    'cache_categories'      => false
+                    'cache_acf_fields'      => true,
+                    'cache_categories'      => true,
+                    'cache_component_list'  => true,
+                    'cache_components'      => true
                 ];
 
     protected   $keep_build_data    = false;
@@ -23,7 +24,7 @@ class FRC_Post_Base_Class {
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
 
-            $this->prepare_component_list();
+            $this->prepare_component_list($post_id);
 
             $this->remove_unused_post_data();
             
@@ -43,19 +44,26 @@ class FRC_Post_Base_Class {
         }
     }
 
-    private function prepare_component_list ($nested_element = false) {
-        if(!$nested_element)
-            $nested_element = $this->acf_schema;
+    private function prepare_component_list ($post_id) {
+        $transient_key = '_frc_api_post_component_list_' . $post_id;
 
-        foreach($nested_element as $schema) {
-            if($schema['type'] == 'frc_components') {
-                foreach(frc_api_get_components_of_type($schema['frc_component_type']) as $component) {
-                    $reference_class = new $component();
+        if(!$this->cache_options['cache_component_list'] || ($component_list = get_transient($transient_key)) === false) {
+            $component_list = [];
+            foreach($this->acf_schema as $schema) {
+                if($schema['type'] == 'frc_components') {
+                    foreach(frc_api_get_components_of_type($schema['frc_component_type']) as $component) {
+                        $reference_class = new $component();
 
-                    $this->components[$schema['name']][$reference_class->get_key_name()] = $component;
+                        $component_list[$schema['name']][$reference_class->get_key_name()] = $component;
+                    }
                 }
             }
+
+            set_transient($transient_key, $component_list);
+            frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
         }
+
+        $this->components = $component_list;
     }
 
     private function construct_post_object ($post_id) {
@@ -86,7 +94,6 @@ class FRC_Post_Base_Class {
 
         $this->acf_fields       = $transient_data['acf_fields'];
         $this->categories       = $transient_data['categories'];
-        $this->extra_cache_data = $this->fetch_extra_cache_data($post_id);
     }
 
     public function construct_acf_fields ($post_id) {
@@ -121,15 +128,15 @@ class FRC_Post_Base_Class {
 
             if($this->cache_options['cache_categories']) {
                 frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
-                set_transient('_frc_api_post_categories_' . $post_id, $this->categories);
+                set_transient($transient_key, $this->categories);
             }
         }
     }
 
     public function get_components () {
-        
         $transient_key = '_frc_api_post_components_' . $this->ID;
-        if(($components = get_transient($transient_key)) === false) {
+
+        if(!$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
             foreach($this->acf_fields as $key => $field) {
@@ -150,37 +157,6 @@ class FRC_Post_Base_Class {
         }
 
         return $components;
-    }
-
-    public function fetch_extra_cache_data ($post_id) {
-        $data = get_transient("_frc_api_post_object_extra_data_" . $post_id);
-
-        if(empty($data) || !is_array($data))
-            $data = [];
-        
-        return $data;
-    }
-
-    public function update_extra_cache_data ($post_id) {
-        $transient_key = "_frc_api_post_object_extra_data_" . $post_id;
-
-        set_transient($transient_key, $this->extra_cache_data);
-    }
-
-    public function delete_extra_cache_data () {
-        delete_transient("_frc_api_post_object_extra_data_" . $post_id);
-    }
-
-    public function set_extra_cache_data ($data) {
-        $this->extra_cache_data = $data;
-
-        $this->update_extra_cache_data($this->ID);
-    }
-
-    public function add_extra_cache_data ($data) {
-        $this->extra_cache_data[] = $data;
-
-        $this->update_extra_cache_data($this->ID);
     }
 
     public function save () {
