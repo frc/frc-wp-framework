@@ -38,6 +38,12 @@ class My_Custom_Post_Type inherits FRC_Post_Base_Class {
 
 That's it. You've got a custom post type. It doesn't contain anything that interesting, but it is a basic run of the mill post -like post type.
 
+You can use these objects just like regular WP_Post objects. These objects are fetched with the `frc_get_post()` -helper function. Like so:
+
+```
+$post = frc_get_post($post_id);
+```
+
 Now that post type has been created. You can define some schemas to it. You can assign taxonomies for the custom post type.
 
 Like so:
@@ -121,8 +127,22 @@ The custom post type event member functions are:
 * `prepared()` (Called after the custom post type objects preparing phase is done)
 * `saved()` (Called whenever `save()` has been called)
 
+These event member functions can be used to add additional functionality to the post type class.
+
+Misc:
+* Optionally you can define the `$included_acf_fields` -member to hold all the `acf_schema` field names that the post object loads up in when the object is loaded.
+* `$served_from_cache` -member is defined true or false when the object is retrieved from cache. You can use this for debugging.
+
+
 ## Component system
 
 Components are a bit more complex. 
 
 More info here...
+
+
+## Helper functions
+
+```
+
+```
