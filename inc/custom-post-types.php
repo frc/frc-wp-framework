@@ -16,7 +16,7 @@ function frc_api_manage_setup_components ($post_type, $component_types, $post_ty
         $frc_component_setups[$post_type]['types'] = $component_types;
 
         foreach($component_types as $component_type) {
-            foreach(frc_api_get_components_of_type($component_type) as $component) {
+            foreach(frc_api_get_components_of_types($component_type) as $component) {
                 $component_reference_class = new $component();
 
                 $component_key = frc_api_name_to_key($component);
@@ -32,8 +32,10 @@ function frc_api_manage_setup_components ($post_type, $component_types, $post_ty
         }
         
         if(!empty($component_acf_fields)) {
+            $proper_name = $override_proper_name ?? $post_type_proper_name . ' Components';
+
             $component_field_group_args = frc_api_proof_acf_schema_groups([
-                'title'     => $override_proper_name ?? $post_type_proper_name . ' Components',
+                'title'     => $proper_name,
                 'fields'    => [
                     [
                         'key'       => $post_type . '_components',
@@ -163,8 +165,8 @@ function frc_api_manage_custom_post_types () {
         }
     }
 
-    frc_api_manage_setup_components('post', ['basic'], 'post', 'Post');
-    frc_api_manage_setup_components('page', ['basic'], 'page', 'page');
+    frc_api_manage_setup_components('post', ['post-components'], 'Post');
+    frc_api_manage_setup_components('page', ['page-components'], 'Page');
 }
 
 add_action('init', "frc_api_manage_custom_post_types");

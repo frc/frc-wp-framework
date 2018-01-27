@@ -5,7 +5,7 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
     public $acf_schema_groups       = [];
 
     public $child_components        = [];
-    public $component_type          = "basic";
+    public $component_types         = "basic";
 
     public $component_data          = [];
     
@@ -48,6 +48,10 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
         $this->component_path = frc_api_get_component_path(get_class($this));
 
         $this->component_view_file = $this->component_path . '/view.php';
+    }
+
+    public function get_component_types () {
+        return (is_string($this->component_types)) ? [$this->component_types] : $this->component_types;
     }
 
     public function get_key_name () {

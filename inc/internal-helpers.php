@@ -196,12 +196,14 @@ function frc_api_load_components_in_directory ($components_directory) {
     }
 }
 
-function frc_api_get_components_of_type ($component_type) {
+function frc_api_get_components_of_types ($component_types) {
+    $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
+   
     $components = [];
     foreach(frc_api_get_base_class_children("FRC_Component_Base_Class") as $component) {
         $reference_class = new $component();
 
-        if($reference_class->component_type != $component_type)
+        if(!array_intersect($reference_class->get_component_types(), $component_types))
             continue;
 
         $components[] = $component;

@@ -53,11 +53,13 @@ class FRC_Post_Base_Class {
 
         if(!$this->cache_options['cache_component_list'] || ($component_list = get_transient($transient_key)) === false) {
             $component_list = [];
-
-            foreach($this->acf_fields['frc_components'] as $component) {
-                $acf_fc_layout = $component['acf_fc_layout'];
-                $component_class = $frc_component_setups[$this->post_type]['components'][$acf_fc_layout];
-                $component_list[$acf_fc_layout] = $component_class;
+            
+            if(!empty($this->acf_fields['frc_components'])) {
+                foreach($this->acf_fields['frc_components'] as $component) {
+                    $acf_fc_layout = $component['acf_fc_layout'];
+                    $component_class = $frc_component_setups[$this->post_type]['components'][$acf_fc_layout];
+                    $component_list[$acf_fc_layout] = $component_class;
+                }
             }
             
             set_transient($transient_key, $component_list);
@@ -142,16 +144,18 @@ class FRC_Post_Base_Class {
         if(!$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
-            foreach($this->acf_fields['frc_components'] as $component) {
-                $component_class = $this->components[$component['acf_fc_layout']];
+            if(!empty($this->acf_fields['frc_components'])) {
+                foreach($this->acf_fields['frc_components'] as $component) {
+                    $component_class = $this->components[$component['acf_fc_layout']];
 
-                if(!isset($component_class))
-                    continue;
+                    if(!isset($component_class))
+                        continue;
 
-                $new_component = new $component_class();
-                $new_component->prepare($component);
+                    $new_component = new $component_class();
+                    $new_component->prepare($component);
 
-                $components[] = $new_component;
+                    $components[] = $new_component;
+                }
             }
 
             set_transient($transient_key, $components);
