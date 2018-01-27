@@ -172,7 +172,7 @@ function frc_api_add_render_transient_data ($transient_key, $hooks) {
 function frc_api_get_component_path ($component) {
     global $frc_component_data_locations;
 
-    return $frc_component_data_locations[$component];
+    return $frc_component_data_locations[$component] ?? false;
 }
 
 function frc_api_load_components_in_directory ($components_directory) {
@@ -191,6 +191,8 @@ function frc_api_load_components_in_directory ($components_directory) {
                 $frc_component_data_locations[$content] = $dir;
 
                 require_once $dir . '/component.php';
+            } else {
+                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both component.php and view.php -files.", E_USER_ERROR);
             }
         }
     }

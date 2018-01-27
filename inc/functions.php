@@ -108,7 +108,11 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 }
 
 function frc_get_render ($file, $data = [], $cache_result_hooks = false) {
-    $file = get_template_directory() . "/" . trim($file, "/");
+    $trace_back = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+
+    $dir = dirname($trace_back[1]['file']);
+
+    $file = $dir . "/" . trim($file, "/");
     return frc_api_render($file, $data, $cache_result_hooks);
 }
 

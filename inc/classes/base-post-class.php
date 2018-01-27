@@ -57,8 +57,10 @@ class FRC_Post_Base_Class {
             if(!empty($this->acf_fields['frc_components'])) {
                 foreach($this->acf_fields['frc_components'] as $component) {
                     $acf_fc_layout = $component['acf_fc_layout'];
-                    $component_class = $frc_component_setups[$this->post_type]['components'][$acf_fc_layout];
-                    $component_list[$acf_fc_layout] = $component_class;
+                    $component_class = $frc_component_setups[$this->post_type]['components'][$acf_fc_layout] ?? false;
+
+                    if($component_class)
+                        $component_list[$acf_fc_layout] = $component_class;
                 }
             }
             
@@ -137,8 +139,6 @@ class FRC_Post_Base_Class {
     }
 
     public function get_components () {
-        global $frc_component_data_locations;
-
         $transient_key = '_frc_api_post_components_' . $this->ID;
 
         if(!$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
@@ -146,7 +146,7 @@ class FRC_Post_Base_Class {
 
             if(!empty($this->acf_fields['frc_components'])) {
                 foreach($this->acf_fields['frc_components'] as $component) {
-                    $component_class = $this->components[$component['acf_fc_layout']];
+                    $component_class = $this->components[$component['acf_fc_layout']] ?? null;
 
                     if(!isset($component_class))
                         continue;
