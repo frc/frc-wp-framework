@@ -27,12 +27,11 @@ class FRC_Post_Base_Class {
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
 
-            $this->prepare_component_list($post_id);
-
             $this->remove_unused_post_data();
             
             //Construct the real post object
             $this->construct_post_object($post_id);
+            $this->prepare_component_list($post_id);
 
             $this->init();
         }
@@ -48,20 +47,19 @@ class FRC_Post_Base_Class {
     }
 
     private function prepare_component_list ($post_id) {
+        global $frc_component_setups;
+        
         $transient_key = '_frc_api_post_component_list_' . $post_id;
 
         if(!$this->cache_options['cache_component_list'] || ($component_list = get_transient($transient_key)) === false) {
             $component_list = [];
-            foreach($this->acf_schema as $schema) {
-                if($schema['type'] == 'frc_components') {
-                    foreach(frc_api_get_components_of_type($schema['frc_component_type']) as $component) {
-                        $reference_class = new $component();
 
-                        $component_list[$schema['name']][$reference_class->get_key_name()] = $component;
-                    }
-                }
+            foreach($this->acf_fields['frc_components'] as $component) {
+                $acf_fc_layout = $component['acf_fc_layout'];
+                $component_class = $frc_component_setups[$this->post_type]['components'][$acf_fc_layout];
+                $component_list[$acf_fc_layout] = $component_class;
             }
-
+            
             set_transient($transient_key, $component_list);
             frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
         }
@@ -144,17 +142,16 @@ class FRC_Post_Base_Class {
         if(!$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
-            foreach($this->acf_fields as $key => $field) {
-                if(!isset($this->components[$key]))
+            foreach($this->acf_fields['frc_components'] as $component) {
+                $component_class = $this->components[$component['acf_fc_layout']];
+
+                if(!isset($component_class))
                     continue;
-    
-                foreach($this->acf_fields[$key] as $component_key => $component_field) {
-                    $component_class = $this->components[$key][$component_field['acf_fc_layout']];
-                    
-                    $new_component = new $component_class();
-                    $new_component->prepare($component_field);
-                    $components[] = $new_component;
-                }
+
+                $new_component = new $component_class();
+                $new_component->prepare($component);
+
+                $components[] = $new_component;
             }
 
             set_transient($transient_key, $components);

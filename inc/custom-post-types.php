@@ -3,6 +3,62 @@
 /*
     Let's construct and manage everything
 */
+
+function frc_api_manage_setup_components ($post_type, $component_types, $post_type_proper_name, $override_proper_name = null) {
+    global $frc_component_setups;
+
+    if(!empty($component_types)) {
+        if(is_string($component_types))
+            $component_types = [$component_types];
+        
+        $component_acf_fields = [];
+
+        $frc_component_setups[$post_type]['types'] = $component_types;
+
+        foreach($component_types as $component_type) {
+            foreach(frc_api_get_components_of_type($component_type) as $component) {
+                $component_reference_class = new $component();
+
+                $component_key = frc_api_name_to_key($component);
+
+                $component_acf_fields[$component_key] = [
+                    'name'       => $component_key,
+                    'label'      => frc_api_class_name_to_proper($component),
+                    'sub_fields' => $component_reference_class->acf_schema
+                ];
+
+                $frc_component_setups[$post_type]['components'][$component_key] = $component;
+            }
+        }
+        
+        if(!empty($component_acf_fields)) {
+            $component_field_group_args = frc_api_proof_acf_schema_groups([
+                'title'     => $override_proper_name ?? $post_type_proper_name . ' Components',
+                'fields'    => [
+                    [
+                        'key'       => $post_type . '_components',
+                        'label'     => 'Components',
+                        'name'      => 'frc_components',
+                        'type'      => 'flexible_content',
+                        'layouts'   => $component_acf_fields
+                    ]
+                ],
+                'location' => [
+                    [
+                        [
+                            'param' => 'post_type',
+                            'operator' => '==',
+                            'value' => $post_type,
+                        ]
+                    ]
+                ]
+            ]);
+
+            acf_add_local_field_group($component_field_group_args);
+        }
+    }
+}
+
 function frc_api_manage_custom_post_types () {
     foreach(frc_api_get_base_class_children("FRC_Post_Base_Class") as $post_type_key_name => $class_name) {
         $reference_class = new $class_name();
@@ -103,49 +159,12 @@ function frc_api_manage_custom_post_types () {
             //Component initializations
             $component_types = $reference_class->component_types ?? [];
 
-            if(!empty($component_types)) {
-                if(is_string($component_types))
-                    $component_types = [$component_types];
-                
-                $component_acf_fields = [];
-
-                foreach($component_types as $component_type) {
-                    foreach(frc_api_get_components_of_type($component_type) as $component) {
-                        $reference_class = new $component();
-                        $component_acf_fields[frc_api_name_to_key($component)] = [
-                            'name'       => frc_api_name_to_key($component),
-                            'label'      => frc_api_class_name_to_proper($component),
-                            'sub_fields' => $reference_class->acf_schema
-                        ];
-                    }
-                }
-                
-                $component_field_group_args = frc_api_proof_acf_schema_groups([
-                    'title'     => $post_type_proper_name . ' Components',
-                    'fields'    => [
-                        [
-                            'key'       => $post_type_key_name . '_components',
-                            'label'     => 'Components',
-                            'name'      => 'components',
-                            'type'      => 'flexible_content',
-                            'layouts'   => $component_acf_fields
-                        ]
-                    ],
-                    'location' => [
-                        [
-                            [
-                                'param' => 'post_type',
-                                'operator' => '==',
-                                'value' => $post_type_key_name,
-                            ]
-                        ]
-                    ]
-                ]);
-
-                acf_add_local_field_group($component_field_group_args);
-            }
+            frc_api_manage_setup_components($post_type_key_name, $component_types, $post_type_proper_name, $reference_class->options['components_proper_name']);
         }
     }
+
+    frc_api_manage_setup_components('post', ['basic'], 'post', 'Post');
+    frc_api_manage_setup_components('page', ['basic'], 'page', 'page');
 }
 
 add_action('init', "frc_api_manage_custom_post_types");
