@@ -57,7 +57,14 @@ class FRC_Post_Base_Class {
             if(!empty($this->acf_fields['frc_components'])) {
                 foreach($this->acf_fields['frc_components'] as $component) {
                     $acf_fc_layout = $component['acf_fc_layout'];
-                    $component_class = $component_setups[$this->post_type]['components'][$acf_fc_layout] ?? false;
+                    $component_class = false;
+
+                    foreach($component_setups[$this->post_type] as $key => $post_type_setup) {
+                        $component_class = $post_type_setup['components'][$acf_fc_layout] ?? false;
+
+                        if($component_class)
+                            break;
+                    }
 
                     if($component_class)
                         $component_list[$acf_fc_layout] = $component_class;

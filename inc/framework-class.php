@@ -10,15 +10,9 @@ class FRC_Framework {
     public $additional_classes;
     public $excluded_classes;
 
-
     public function __construct () {
         add_action('init', [$this, "setup_custom_post_types"]);
         add_action('init', [$this, "setup_basic_post_type_components"]);
-    }
-    
-    public function setup_basic_post_type_components () {
-        $this->setup_components('post', ['post-components'], 'Post');
-        $this->setup_components('page', ['page-components'], 'Page');
     }
 
     static public function get_instance () {
@@ -30,28 +24,12 @@ class FRC_Framework {
 
         return $frc_framework_instance;
     }
-
-    public function add_to_local_cache_stack ($post) {
-        if(isset($this->local_cache_stack[$post->ID]))
-            return;
     
-        $this->local_cache_stack[$post->ID] = $post;
-    
-        if(count($this->local_cache_stack) > 10)
-            array_shift($this->local_cache_stack);
-    }
-
-    public function set_local_cache_stack ($posts) {
-        $cache_posts = [];
-        foreach($posts as $post) {
-            $cache_posts[$post->ID] = $post;
+    public function setup_basic_post_type_components () {
+        if($this->options['setup_basic_post_type_components']) {
+            $this->setup_components('post', ['post-components'], 'Post');
+            $this->setup_components('page', ['page-components'], 'Page');
         }
-    
-        $this->local_cache_stack = $cache_posts;
-    }
-
-    public function frc_get_from_local_cache_stack($post_id) {
-        return $this->local_cache_stack[$post_id] ?? false;
     }
 
     public function setup_custom_post_types () {
@@ -159,14 +137,16 @@ class FRC_Framework {
         }
     }
 
-    public function setup_components ($post_type, $component_types, $post_type_proper_name, $override_proper_name = null) {
+    public function setup_components ($post_type, $component_types, $post_type_proper_name, $override_proper_name = null, $override_field_group_args = []) {
         if(!empty($component_types)) {
             if(is_string($component_types))
                 $component_types = [$component_types];
             
             $component_acf_fields = [];
-    
-            $this->component_setups[$post_type]['types'] = $component_types;
+
+            $current_index = isset($this->component_setups[$post_type]) ? count($this->component_setups[$post_type]) : 0;
+
+            $this->component_setups[$post_type][$current_index]['types'] = $component_types;
     
             foreach($component_types as $component_type) {
                 foreach(frc_api_get_components_of_types($component_type) as $component) {
@@ -180,7 +160,7 @@ class FRC_Framework {
                         'sub_fields' => $component_reference_class->acf_schema
                     ];
     
-                    $this->component_setups[$post_type]['components'][$component_key] = $component;
+                    $this->component_setups[$post_type][$current_index]['components'][$component_key] = $component;
                 }
             }
             
@@ -209,8 +189,31 @@ class FRC_Framework {
                     ]
                 ]);
     
-                acf_add_local_field_group($component_field_group_args);
+                acf_add_local_field_group(array_replace_recursive($component_field_group_args, $override_field_group_args));
             }
         }
+    }
+
+    public function add_to_local_cache_stack ($post) {
+        if(isset($this->local_cache_stack[$post->ID]))
+            return;
+    
+        $this->local_cache_stack[$post->ID] = $post;
+    
+        if(count($this->local_cache_stack) > $this->options['local_cache_stack_size'])
+            array_shift($this->local_cache_stack);
+    }
+
+    public function set_local_cache_stack ($posts) {
+        $cache_posts = [];
+        foreach($posts as $post) {
+            $cache_posts[$post->ID] = $post;
+        }
+    
+        $this->local_cache_stack = $cache_posts;
+    }
+
+    public function frc_get_from_local_cache_stack($post_id) {
+        return $this->local_cache_stack[$post_id] ?? false;
     }
 }
