@@ -13,8 +13,6 @@ class FRC_WP_Query extends WP_Query {
     }
 
     public function get_posts () {
-        global $frc_in_wp_query;
-
         if(!$this->cache_results)
             return parent::get_posts();
 

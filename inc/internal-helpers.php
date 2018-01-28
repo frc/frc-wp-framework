@@ -107,6 +107,7 @@ function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
     if(!$cache_result_hooks || ($required_data = get_transient($transient_key)) === false) {
         ob_start();
         extract((array) $data);
+
         require_once $file;
         $required_data = ob_get_clean();
 
@@ -120,7 +121,8 @@ function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
 }
 
 function frc_api_get_base_class_children ($base_class = false) {
-    global $frc_additional_classes, $frc_excluded_classes;
+    $additional_classes = FRC_Framework::get_instance()->additional_classes;
+    $excluded_classes = FRC_Framework::get_instance()->excluded_classes;
 
     if(!$base_class)
         return [];
@@ -131,19 +133,19 @@ function frc_api_get_base_class_children ($base_class = false) {
 
     foreach($declared_classes as $class_name) {
         if(get_parent_class($class_name) != $base_class
-            || (isset($frc_excluded_classes[$base_class])
-                && is_array($frc_excluded_classes[$base_class])
-                && in_array($class_name, $frc_excluded_classes[$base_class])))
+            || (isset($excluded_classes[$base_class])
+                && is_array($excluded_classes[$base_class])
+                && in_array($class_name, $excluded_classes[$base_class])))
             continue;
 
         $output[frc_api_name_to_key($class_name)] = $class_name;
     }
 
-    if($frc_additional_classes) {
-        foreach($frc_additional_classes as $class_name) {
-            if(isset($frc_excluded_classes[$base_class])
-                && is_array($frc_excluded_classes[$base_class])
-                && in_array($class_name, $frc_excluded_classes[$base_class]))
+    if($additional_classes) {
+        foreach($additional_classes as $class_name) {
+            if(isset($excluded_classes[$base_class])
+                && is_array($excluded_classes[$base_class])
+                && in_array($class_name, $excluded_classes[$base_class]))
                 continue;
 
             $output[frc_api_name_to_key($class_name)] = $class_name;
@@ -170,13 +172,11 @@ function frc_api_add_render_transient_data ($transient_key, $hooks) {
 }
 
 function frc_api_get_component_path ($component) {
-    global $frc_component_data_locations;
-
-    return $frc_component_data_locations[$component] ?? false;
+    return FRC_Framework::get_instance()->component_data_locations[$component] ?? false;
 }
 
 function frc_api_load_components_in_directory ($components_directory) {
-    global $frc_component_data_locations;
+    $component_data_locations = FRC_Framework::get_instance()->component_data_locations;
 
     $components_directory = rtrim($components_directory, "/");
 
@@ -188,7 +188,7 @@ function frc_api_load_components_in_directory ($components_directory) {
 
         if(is_dir($dir)) {
             if(file_exists($dir . '/component.php') && file_exists($dir . '/view.php')) {
-                $frc_component_data_locations[$content] = $dir;
+                $component_data_locations[$content] = $dir;
 
                 require_once $dir . '/component.php';
             } else {
@@ -196,6 +196,8 @@ function frc_api_load_components_in_directory ($components_directory) {
             }
         }
     }
+
+    FRC_Framework::get_instance()->component_data_locations = $component_data_locations;
 }
 
 function frc_api_get_components_of_types ($component_types) {

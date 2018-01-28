@@ -1,11 +1,22 @@
 <?php
 
 class FRC_Framework {
+    public $options;
+
     public $component_setups;
+    public $component_data_locations;
+
+    public $local_cache_stack;
+    public $additional_classes;
+    public $excluded_classes;
+
 
     public function __construct () {
         add_action('init', [$this, "setup_custom_post_types"]);
-
+        add_action('init', [$this, "setup_basic_post_type_components"]);
+    }
+    
+    public function setup_basic_post_type_components () {
         $this->setup_components('post', ['post-components'], 'Post');
         $this->setup_components('page', ['page-components'], 'Page');
     }
@@ -13,10 +24,34 @@ class FRC_Framework {
     static public function get_instance () {
         global $frc_framework_instance;
 
-        if(!$frc_framework_instance)
+        if(!$frc_framework_instance) {
             $frc_framework_instance = new FRC_Framework();
+        }
 
         return $frc_framework_instance;
+    }
+
+    public function add_to_local_cache_stack ($post) {
+        if(isset($this->local_cache_stack[$post->ID]))
+            return;
+    
+        $this->local_cache_stack[$post->ID] = $post;
+    
+        if(count($this->local_cache_stack) > 10)
+            array_shift($this->local_cache_stack);
+    }
+
+    public function set_local_cache_stack ($posts) {
+        $cache_posts = [];
+        foreach($posts as $post) {
+            $cache_posts[$post->ID] = $post;
+        }
+    
+        $this->local_cache_stack = $cache_posts;
+    }
+
+    public function frc_get_from_local_cache_stack($post_id) {
+        return $this->local_cache_stack[$post_id] ?? false;
     }
 
     public function setup_custom_post_types () {

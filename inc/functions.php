@@ -1,49 +1,30 @@
 <?php
 
 function frc_set_options ($options = [], $override = false) {
-    global $frc_options;
+    $current_options = FRC_Framework::get_instance()->options;
 
-    $last_options = $frc_options ?? [];
+    $last_options = $current_options ?? [];
 
     if(!$override)
-        $frc_options = array_replace_recursive($last_options, $options);
+        FRC_Framework::get_instance()->options = array_replace_recursive($last_options, $options);
     else
-        $frc_options = $options;
+        FRC_Framework::get_instance()->options = $options;
 }
 
 function frc_get_options () {
-    global $frc_options;
-
-    return $frc_options;
+    return FRC_Framework::get_instance()->options;
 }
 
 function frc_get_from_local_cache_stack ($post_id) {
-    global $frc_local_cache_stack;
-    
-    return $frc_local_cache_stack[$post_id] ?? false;
+    return FRC_Framework::get_instance()->frc_get_from_local_cache_stack($post_id);
 }
 
 function frc_add_to_local_cache_stack ($post) {
-    global $frc_local_cache_stack;
-
-    if(isset($frc_local_cache_stack[$post->ID]))
-        return;
-
-    $frc_local_cache_stack[$post->ID] = $post;
-
-    if(count($frc_local_cache_stack) > 10)
-        array_shift($frc_local_cache_stack);
+    FRC_Framework::get_instance()->add_to_local_cache_stack($post);
 }
 
 function frc_set_local_cache_stack ($posts) {
-    global $frc_local_cache_stack;
-
-    $cache_posts = [];
-    foreach($posts as $post) {
-        $cache_posts[$post->ID] = $post;
-    }
-
-    $frc_local_cache_stack = $cache_posts;
+    FRC_Framework::get_instance()->set_local_cache_stack($post);
 }
 
 function frc_get_post ($post_id = null, $get_fresh = false) {
@@ -121,13 +102,9 @@ function frc_render ($file, $data = [], $cache_result_hooks = false) {
 }
 
 function frc_add_class ($class_name, $base_class) {
-    global $frc_additional_classes;
-
-    $frc_additional_classes[$base_class][] = $class_name;
+    FRC_Framework::get_instance()->additional_classes[$base_class][] = $class_name;
 }
 
 function frc_exclude_class ($class_name, $base_class) {
-    global $frc_excluded_classes;
-
-    $frc_excluded_classes[$base_class][] = $class_name;
+    FRC_Framework::get_instance()->excluded_classes[$base_class][] = $class_name;
 }

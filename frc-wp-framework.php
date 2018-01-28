@@ -8,6 +8,8 @@ Copyright: Taneli Heikkinen
 Version: 0.1
 */
 
+require_once 'inc/framework-class.php';
+
 require_once 'inc/internal-helpers.php';
 require_once 'inc/functions.php';
 require_once 'inc/transient-management.php';
@@ -16,7 +18,6 @@ require_once 'inc/classes/base-post-class.php';
 require_once 'inc/classes/base-component-interface.php';
 require_once 'inc/classes/base-component-class.php';
 
-require_once 'inc/framework-class.php';
 require_once 'inc/query.php';
 
 require_once 'inc/basic-components/components.php';
@@ -26,7 +27,5 @@ frc_set_options([
     'default_frc_post_class'    => 'FRC_Post',
     'cache_whole_post_objects'  => true
 ]);
-
-FRC_Framework::get_instance();
 
 define("FRC_WP_FRAMEWORK_INIT", true);
