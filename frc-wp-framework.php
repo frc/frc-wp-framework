@@ -16,16 +16,17 @@ require_once 'inc/classes/base-post-class.php';
 require_once 'inc/classes/base-component-interface.php';
 require_once 'inc/classes/base-component-class.php';
 
-require_once 'inc/custom-post-types.php';
+require_once 'inc/framework-class.php';
 require_once 'inc/query.php';
 
 require_once 'inc/basic-components/components.php';
-
 
 //Set the default options
 frc_set_options([
     'default_frc_post_class'    => 'FRC_Post',
     'cache_whole_post_objects'  => true
 ]);
+
+FRC_Framework::get_instance();
 
 define("FRC_WP_FRAMEWORK_INIT", true);
