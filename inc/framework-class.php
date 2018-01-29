@@ -5,6 +5,8 @@ class FRC_Framework {
 
     public $component_setups;
     public $component_data_locations;
+    public $component_classes;
+    public $component_root_folders;
 
     public $local_cache_stack;
     public $additional_classes;
@@ -149,7 +151,7 @@ class FRC_Framework {
             $this->component_setups[$post_type][$current_index]['types'] = $component_types;
     
             foreach($component_types as $component_type) {
-                foreach(frc_api_get_components_of_types($component_type) as $component) {
+                foreach(frc_get_components_of_types($component_type) as $component) {
                     $component_reference_class = new $component();
     
                     $component_key = frc_api_name_to_key($component);
@@ -215,5 +217,12 @@ class FRC_Framework {
 
     public function frc_get_from_local_cache_stack($post_id) {
         return $this->local_cache_stack[$post_id] ?? false;
+    }
+
+    public function register_component_class ($class_name, $directory = "") {
+        $this->component_classes[] = $class_name;
+
+        if(!empty($directory))
+            $this->component_locations[$class_name] = $directory;
     }
 }

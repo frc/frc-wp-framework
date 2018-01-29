@@ -108,3 +108,50 @@ function frc_add_class ($class_name, $base_class) {
 function frc_exclude_class ($class_name, $base_class) {
     FRC_Framework::get_instance()->excluded_classes[$base_class][] = $class_name;
 }
+
+function frc_register_components_folder ($components_directory) {
+    $frc_framework = FRC_Framework::get_instance();
+
+    $frc_framework->component_root_folders[] = $components_directory;
+
+    $components_directory = rtrim($components_directory, "/");
+
+    $contents = array_diff(scandir($components_directory), ['..', '.']);
+
+    $component_dirs = [];
+    foreach($contents as $content) {
+        $dir = $components_directory . '/' . $content;
+
+        if(is_dir($dir)) {
+            if(file_exists($dir . '/component.php') && file_exists($dir . '/view.php')) {
+                require_once $dir . '/component.php';
+
+                if(!class_exists($content)) {
+                    trigger_error("Found component directory and found all the proper files, but didn't find a class with the same name (" . $content . ").", E_USER_ERROR);
+                } else {
+                    $frc_framework->register_component_class($content, $dir);
+                }
+            } else {
+                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both component.php and view.php -files.", E_USER_ERROR);
+            }
+        }
+    }
+}
+
+function frc_get_components_of_types ($component_types) {
+    $frc_framework = FRC_Framework::get_instance();
+
+    $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
+   
+    $components = [];
+    foreach($frc_framework->component_classes as $component) {
+        $reference_class = new $component();
+
+        if(!array_intersect($reference_class->get_component_types(), $component_types))
+            continue;
+
+        $components[] = $component;
+    }
+
+    return $components;
+}

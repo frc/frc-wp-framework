@@ -172,46 +172,5 @@ function frc_api_add_render_transient_data ($transient_key, $hooks) {
 }
 
 function frc_api_get_component_path ($component) {
-    return FRC_Framework::get_instance()->component_data_locations[$component] ?? false;
-}
-
-function frc_api_load_components_in_directory ($components_directory) {
-    $component_data_locations = FRC_Framework::get_instance()->component_data_locations;
-
-    $components_directory = rtrim($components_directory, "/");
-
-    $contents = array_diff(scandir($components_directory), ['..', '.']);
-
-    $component_dirs = [];
-    foreach($contents as $content) {
-        $dir = $components_directory . '/' . $content;
-
-        if(is_dir($dir)) {
-            if(file_exists($dir . '/component.php') && file_exists($dir . '/view.php')) {
-                $component_data_locations[$content] = $dir;
-
-                require_once $dir . '/component.php';
-            } else {
-                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both component.php and view.php -files.", E_USER_ERROR);
-            }
-        }
-    }
-
-    FRC_Framework::get_instance()->component_data_locations = $component_data_locations;
-}
-
-function frc_api_get_components_of_types ($component_types) {
-    $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
-   
-    $components = [];
-    foreach(frc_api_get_base_class_children("FRC_Component_Base_Class") as $component) {
-        $reference_class = new $component();
-
-        if(!array_intersect($reference_class->get_component_types(), $component_types))
-            continue;
-
-        $components[] = $component;
-    }
-
-    return $components;
+    return FRC_Framework::get_instance()->component_locations[$component] ?? false;
 }
