@@ -35,8 +35,8 @@ class FRC {
     
     public function setup_basic_post_type_components () {
         if($this->options['setup_basic_post_type_components']) {
-            $this->setup_components('post', ['post-components'], 'Post');
-            $this->setup_components('page', ['page-components'], 'Page');
+            $this->setup_components('post', [['types' => 'post-component']], 'Post');
+            $this->setup_components('page', [['types' => 'post-component']], 'Page');
         }
     }
 
@@ -142,67 +142,78 @@ class FRC {
                 }
     
                 //Component initializations
-                $component_types = $reference_class->component_types ?? [];
-    
-                $this->setup_components($post_type_key_name, $component_types, $post_type_proper_name, $reference_class->options['components_proper_name']);
+                if(is_array($reference_class->component_setups) && !empty($reference_class->component_setups))
+                    $this->setup_components($post_type_key_name, $reference_class->component_setups, $post_type_proper_name);
             }
         }
     }
 
-    public function setup_components ($post_type, $component_types, $post_type_proper_name, $override_proper_name = null, $override_field_group_args = []) {
-        if(!empty($component_types)) {
-            if(is_string($component_types))
-                $component_types = [$component_types];
-            
+    public function setup_components ($post_type, $component_setups, $proper_name) {
+        if(empty($component_setups) || !is_array($component_setups))
+            return;
+
+        $current_index = 0;
+
+        foreach($component_setups as $component_setup) {
+            if(!isset($component_setup['types']))
+                continue;
+
+            if(is_string($component_setup['types']))
+                $component_setup['types'] = [$component_setup['types']];
+
+            if(empty($component_setup['types']))
+                continue;
+
             $component_acf_fields = [];
-
-            $current_index = isset($this->component_setups[$post_type]) ? count($this->component_setups[$post_type]) : 0;
-
-            $this->component_setups[$post_type][$current_index]['types'] = $component_types;
-    
-            foreach($component_types as $component_type) {
-                foreach(frc_get_components_of_types($component_type) as $component) {
-                    $component_reference_class = new $component();
-    
-                    $component_key = frc_api_name_to_key($component);
-    
-                    $component_acf_fields[$component_key] = [
-                        'name'       => $component_key,
-                        'label'      => frc_api_class_name_to_proper($component),
-                        'sub_fields' => $component_reference_class->acf_schema
-                    ];
-    
-                    $this->component_setups[$post_type][$current_index]['components'][$component_key] = $component;
-                }
-            }
             
-            if(!empty($component_acf_fields)) {
-                $proper_name = $override_proper_name ?? $post_type_proper_name . ' Components';
-    
-                $component_field_group_args = frc_api_proof_acf_schema_groups([
-                    'title'     => $proper_name,
-                    'fields'    => [
+            $component_setup_list = [];
+
+            foreach(frc_get_components_of_types($component_setup['types']) as $component) {
+                $component_reference_class = new $component();
+
+                $component_key = md5('group_' . $current_index . '_' . frc_api_name_to_key($component));
+                
+                $component_setup_list['components'][frc_api_name_to_key($component)] = $component;
+
+                $component_acf_fields[$component_key] = [
+                    'key'        => $component_key,
+                    'name'       => frc_api_name_to_key($component),
+                    'label'      => frc_api_class_name_to_proper($component),
+                    'sub_fields' => $component_reference_class->acf_schema
+                ];
+            }
+
+            if(empty($component_acf_fields))
+                continue;
+
+            $this->component_setups[$post_type][] = $component_setup_list;
+            
+            $component_field_group_args = frc_api_proof_acf_schema_groups([
+                'title'     => $proper_name . ' Components',
+                'fields'    => [
+                    [
+                        'label'     => 'Components',
+                        'name'      => 'frc_components',
+                        'type'      => 'flexible_content',
+                        'layouts'   => $component_acf_fields
+                    ]
+                ],
+                'location' => [
+                    [
                         [
-                            'key'       => $post_type . '_components',
-                            'label'     => 'Components',
-                            'name'      => 'frc_components',
-                            'type'      => 'flexible_content',
-                            'layouts'   => $component_acf_fields
-                        ]
-                    ],
-                    'location' => [
-                        [
-                            [
-                                'param' => 'post_type',
-                                'operator' => '==',
-                                'value' => $post_type,
-                            ]
+                            'param' => 'post_type',
+                            'operator' => '==',
+                            'value' => $post_type,
                         ]
                     ]
-                ]);
-    
-                acf_add_local_field_group(array_replace_recursive($component_field_group_args, $override_field_group_args));
-            }
+                ]
+            ], $current_index . '_group_');
+
+            $component_field_group_args = array_replace_recursive($component_field_group_args, $component_setup['acf_group_schema'] ?? []);
+
+            acf_add_local_field_group($component_field_group_args);
+
+            $current_index++;
         }
     }
 

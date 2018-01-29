@@ -74,11 +74,11 @@ function frc_api_class_name_to_proper ($class_name) {
     return $post_type_proper_name;
 }
 
-function frc_api_proof_acf_schema_groups ($acf_schema_groups) {
+function frc_api_proof_acf_schema_groups ($acf_schema_groups, $prefix = "") {
     if(!isset($acf_schema_groups['key']))
-        $acf_schema_groups['key'] = md5(frc_api_name_to_key($acf_schema_groups['title']));
+        $acf_schema_groups['key'] = $prefix . frc_api_name_to_key($acf_schema_groups['title']);
 
-    $acf_schema_groups['fields'] = frc_api_proof_acf_schema($acf_schema_groups['fields'], $acf_schema_groups['key'] . '_fields');
+    $acf_schema_groups['fields'] = frc_api_proof_acf_schema($acf_schema_groups['fields'], $prefix . $acf_schema_groups['key'] . '_fields');
 
     return $acf_schema_groups;
 }
@@ -86,7 +86,7 @@ function frc_api_proof_acf_schema_groups ($acf_schema_groups) {
 function frc_api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     foreach($acf_schema as $key => $field) {
         if(!isset($field['key'])) {
-            $acf_schema[$key]['key'] = md5($prefix . "_" . $field['name']);
+            $acf_schema[$key]['key'] = $prefix . "_" . $field['name'];
         }
 
         if(isset($field['sub_fields'])) {

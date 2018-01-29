@@ -4,7 +4,11 @@ class FRC_Post_Base_Class {
     public      $categories;
     public      $components;
 
-    public      $component_types;
+    public      $component_setups = [
+                    [
+                        'types' => ['base-component']
+                    ]
+                ];
     public      $included_acf_fields;
 
     public      $options;
@@ -62,8 +66,8 @@ class FRC_Post_Base_Class {
                     $acf_fc_layout = $component['acf_fc_layout'];
                     $component_class = false;
 
-                    foreach($component_setups[$this->post_type] as $key => $post_type_setup) {
-                        $component_class = $post_type_setup['components'][$acf_fc_layout] ?? false;
+                    foreach($component_setups[$this->post_type] as $component_setup) {
+                        $component_class = $component_setup['components'][$acf_fc_layout] ?? false;
 
                         if($component_class)
                             break;

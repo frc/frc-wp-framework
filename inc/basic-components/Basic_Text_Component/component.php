@@ -2,9 +2,9 @@
 
 class Basic_Text_Component extends FRC_Component_Base_Class {
     public $component_types = [
-        'basic',
-        'post-components',
-        'page-components'
+        'base-component',
+        'post-component',
+        'page-component'
     ];
 
     public $acf_schema = [
