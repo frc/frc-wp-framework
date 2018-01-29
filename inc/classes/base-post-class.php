@@ -47,11 +47,14 @@ class FRC_Post_Base_Class {
     }
 
     private function prepare_component_list ($post_id) {
-        $component_setups = FRC_Framework::get_instance()->component_setups;
+        if(!defined("ACF_PRO"))
+            return;
+
+        $component_setups = FRC::get_instance()->component_setups;
 
         $transient_key = '_frc_api_post_component_list_' . $post_id;
 
-        if(!$this->cache_options['cache_component_list'] || ($component_list = get_transient($transient_key)) === false) {
+        if(!FRC::use_cache() || !$this->cache_options['cache_component_list'] || ($component_list = get_transient($transient_key)) === false) {
             $component_list = [];
             
             if(!empty($this->acf_fields['frc_components'])) {
@@ -71,8 +74,10 @@ class FRC_Post_Base_Class {
                 }
             }
             
-            set_transient($transient_key, $component_list);
-            frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+            if(FRC::use_cache()) {
+                set_transient($transient_key, $component_list);
+                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+            }
         }
 
         $this->components = $component_list;
@@ -83,7 +88,7 @@ class FRC_Post_Base_Class {
 
         $transient_key = '_frc_api_post_object_' . $post_id;
 
-        if(!$this->cache_options['cache_whole_object'] || ($transient_data = get_transient($transient_key)) === false) {
+        if(!FRC::use_cache() || !$this->cache_options['cache_whole_object'] || ($transient_data = get_transient($transient_key)) === false) {
             $post = get_object_vars(WP_Post::get_instance($post_id));
 
             $this->construct_acf_fields($post_id);
@@ -92,7 +97,7 @@ class FRC_Post_Base_Class {
 
             $transient_data = ['post' => $post, 'acf_fields' => $this->acf_fields, "categories" => $this->categories];
 
-            if($this->cache_options['cache_whole_object']) {
+            if($this->cache_options['cache_whole_object'] && FRC::use_cache()) {
                 frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                 set_transient($transient_key, $transient_data);
             }
@@ -111,7 +116,7 @@ class FRC_Post_Base_Class {
     public function construct_acf_fields ($post_id) {
         if($this->cache_options['cache_acf_fields']) {
             $transient_key = '_frc_api_post_acf_field_' . $post_id;
-            if(($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
+            if(FRC::use_cache() || ($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
                 $this->acf_fields = get_fields($post_id);
 
                 //If included acf fields is set, only include those acf fields
@@ -123,8 +128,10 @@ class FRC_Post_Base_Class {
                     }
                 }
 
-                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
-                set_transient($transient_key, $this->acf_fields);
+                if(FRC::use_cache()) {
+                    frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+                    set_transient($transient_key, $this->acf_fields);
+                }
             }
         } else {
             $this->acf_fields = get_fields($post_id);
@@ -133,12 +140,12 @@ class FRC_Post_Base_Class {
 
     public function construct_categories ($post_id) {
         $transient_key = '_frc_api_post_categories_' . $post_id;
-        if(($this->categories = get_transient($transient_key)) === false) {
+        if(FRC::use_cache() || ($this->categories = get_transient($transient_key)) === false) {
             foreach(get_categories($post_id) as $category) {
                 $this->categories[] = get_object_vars($category);
             }
 
-            if($this->cache_options['cache_categories']) {
+            if($this->cache_options['cache_categories'] && FRC::use_cache()) {
                 frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                 set_transient($transient_key, $this->categories);
             }
@@ -146,9 +153,12 @@ class FRC_Post_Base_Class {
     }
 
     public function get_components () {
+        if(!defined("ACF_PRO"))
+            return [];
+
         $transient_key = '_frc_api_post_components_' . $this->ID;
 
-        if(!$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
+        if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
             if(!empty($this->acf_fields['frc_components'])) {
@@ -165,8 +175,10 @@ class FRC_Post_Base_Class {
                 }
             }
 
-            set_transient($transient_key, $components);
-            frc_api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
+            if(FRC::use_cache()) {
+                set_transient($transient_key, $components);
+                frc_api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
+            }
         }
 
         return $components;

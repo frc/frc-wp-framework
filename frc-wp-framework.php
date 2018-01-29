@@ -8,6 +8,9 @@ Copyright: Taneli Heikkinen
 Version: 0.1
 */
 
+if(defined("FRC_WP_FRAMEWORK_INIT"))
+    return;
+
 require_once 'inc/framework-class.php';
 
 require_once 'inc/internal-helpers.php';
@@ -27,7 +30,8 @@ frc_set_options([
     'default_frc_post_class'            => 'FRC_Post',
     'local_cache_stack_size'            => 10,
     'cache_whole_post_objects'          => true,
-    'setup_basic_post_type_components'  => true
+    'setup_basic_post_type_components'  => true,
+    'use_caching'                       => true
 ]);
 
 define("FRC_WP_FRAMEWORK_INIT", true);

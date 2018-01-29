@@ -18,7 +18,7 @@ class FRC_WP_Query extends WP_Query {
 
         $transient_key = "_frc_wp_query_" . md5(serialize($this->query));
 
-        if(($query_result = get_transient($transient_key)) === false) {
+        if(!FRC::use_cache() || ($query_result = get_transient($transient_key)) === false) {
             $frc_in_wp_query = true;
             $tmp_query_result = parent::get_posts();
             $frc_in_wp_query = false;
@@ -32,7 +32,9 @@ class FRC_WP_Query extends WP_Query {
                 $query_result[] = frc_get_post($query_post->ID);
             }
 
-            set_transient($transient_key, $query_result, $this->expiration_time);
+            if(FRC::use_cache()) {
+                set_transient($transient_key, $query_result, $this->expiration_time);
+            }
 
             return $query_result;
         }

@@ -1,30 +1,30 @@
 <?php
 
 function frc_set_options ($options = [], $override = false) {
-    $current_options = FRC_Framework::get_instance()->options;
+    $current_options = FRC::get_instance()->options;
 
     $last_options = $current_options ?? [];
 
     if(!$override)
-        FRC_Framework::get_instance()->options = array_replace_recursive($last_options, $options);
+        FRC::get_instance()->options = array_replace_recursive($last_options, $options);
     else
-        FRC_Framework::get_instance()->options = $options;
+        FRC::get_instance()->options = $options;
 }
 
 function frc_get_options () {
-    return FRC_Framework::get_instance()->options;
+    return FRC::get_instance()->options;
 }
 
 function frc_get_from_local_cache_stack ($post_id) {
-    return FRC_Framework::get_instance()->frc_get_from_local_cache_stack($post_id);
+    return FRC::get_instance()->frc_get_from_local_cache_stack($post_id);
 }
 
 function frc_add_to_local_cache_stack ($post) {
-    FRC_Framework::get_instance()->add_to_local_cache_stack($post);
+    FRC::get_instance()->add_to_local_cache_stack($post);
 }
 
 function frc_set_local_cache_stack ($posts) {
-    FRC_Framework::get_instance()->set_local_cache_stack($post);
+    FRC::get_instance()->set_local_cache_stack($post);
 }
 
 function frc_get_post ($post_id = null, $get_fresh = false) {
@@ -43,7 +43,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
     $whole_object_transient_key = "_frc_post_whole_object_" . $post_id;
     
-    if($frc_options['cache_whole_post_objects'] && !$get_fresh) {
+    if(FRC::use_cache() && $frc_options['cache_whole_post_objects'] && !$get_fresh) {
         if(($post = get_transient($whole_object_transient_key)) !== false) {
             $post->remove_unused_post_data();
             $post->served_from_cache = true;
@@ -53,8 +53,8 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     }
 
     //Save the class of the post so we don't have to figure it out every time
-    if(($post_class_to_use = frc_api_get_post_class_type($post_id)) === false) {
-        $children = frc_api_get_base_class_children("FRC_Post_Base_Class");
+    if(FRC::use_cache() || ($post_class_to_use = frc_api_get_post_class_type($post_id)) === false) {
+        $children = FRC::get_instance()->custom_post_types;
 
         if(isset($children[get_post_type($post_id)])) {
             $post_class_to_use = $children[get_post_type($post_id)];
@@ -62,7 +62,9 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
             $post_class_to_use = $frc_options['default_frc_post_class'] ?? "FRC_Post";
         }
 
-        frc_api_set_post_class_type($post_id, $post_class_to_use);
+        if(FRC::use_cache()) {
+            frc_api_set_post_class_type($post_id, $post_class_to_use);
+        }
     }
 
     if($frc_options['cache_whole_post_objects']) {
@@ -76,7 +78,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
     $post = new $post_class_to_use($post_id, $post_class_args);
 
-    if($frc_options['cache_whole_post_objects']) {
+    if(FRC::use_cache() && $frc_options['cache_whole_post_objects']) {
 
         set_transient($whole_object_transient_key, $post);
 
@@ -102,15 +104,15 @@ function frc_render ($file, $data = [], $cache_result_hooks = false) {
 }
 
 function frc_add_class ($class_name, $base_class) {
-    FRC_Framework::get_instance()->additional_classes[$base_class][] = $class_name;
+    FRC::get_instance()->additional_classes[$base_class][] = $class_name;
 }
 
 function frc_exclude_class ($class_name, $base_class) {
-    FRC_Framework::get_instance()->excluded_classes[$base_class][] = $class_name;
+    FRC::get_instance()->excluded_classes[$base_class][] = $class_name;
 }
 
 function frc_register_components_folder ($components_directory) {
-    $frc_framework = FRC_Framework::get_instance();
+    $frc_framework = FRC::get_instance();
 
     $frc_framework->component_root_folders[] = $components_directory;
 
@@ -139,7 +141,7 @@ function frc_register_components_folder ($components_directory) {
 }
 
 function frc_get_components_of_types ($component_types) {
-    $frc_framework = FRC_Framework::get_instance();
+    $frc_framework = FRC::get_instance();
 
     $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
    

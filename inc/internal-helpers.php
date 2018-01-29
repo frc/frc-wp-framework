@@ -121,8 +121,8 @@ function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
 }
 
 function frc_api_get_base_class_children ($base_class = false) {
-    $additional_classes = FRC_Framework::get_instance()->additional_classes;
-    $excluded_classes = FRC_Framework::get_instance()->excluded_classes;
+    $additional_classes = FRC::get_instance()->additional_classes;
+    $excluded_classes = FRC::get_instance()->excluded_classes;
 
     if(!$base_class)
         return [];
@@ -172,5 +172,5 @@ function frc_api_add_render_transient_data ($transient_key, $hooks) {
 }
 
 function frc_api_get_component_path ($component) {
-    return FRC_Framework::get_instance()->component_locations[$component] ?? false;
+    return FRC::get_instance()->component_locations[$component] ?? false;
 }

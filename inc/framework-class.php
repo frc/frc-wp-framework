@@ -1,6 +1,6 @@
 <?php
 
-class FRC_Framework {
+class FRC {
     public $options;
 
     public $component_setups;
@@ -12,16 +12,22 @@ class FRC_Framework {
     public $additional_classes;
     public $excluded_classes;
 
+    public $custom_post_types;
+
     public function __construct () {
+        add_action('init', [$this, "collect_custom_post_types"]);
+
         add_action('init', [$this, "setup_custom_post_types"]);
-        add_action('init', [$this, "setup_basic_post_type_components"]);
+
+        if(defined("ACF_PRO"))
+            add_action('init', [$this, "setup_basic_post_type_components"]);
     }
 
     static public function get_instance () {
         global $frc_framework_instance;
 
         if(!$frc_framework_instance) {
-            $frc_framework_instance = new FRC_Framework();
+            $frc_framework_instance = new FRC();
         }
 
         return $frc_framework_instance;
@@ -34,8 +40,12 @@ class FRC_Framework {
         }
     }
 
+    public function collect_custom_post_types () {
+        $this->custom_post_types = frc_api_get_base_class_children("FRC_Post_Base_Class");
+    }
+
     public function setup_custom_post_types () {
-        foreach(frc_api_get_base_class_children("FRC_Post_Base_Class") as $post_type_key_name => $class_name) {
+        foreach($this->custom_post_types as $post_type_key_name => $class_name) {
             $reference_class = new $class_name();
     
             $post_type_proper_name = $reference_class->options['proper_name'] ?? frc_api_class_name_to_proper($class_name);
@@ -224,5 +234,9 @@ class FRC_Framework {
 
         if(!empty($directory))
             $this->component_locations[$class_name] = $directory;
+    }
+
+    static public function use_cache () {
+        return FRC::get_instance()->options['use_caching'];
     }
 }

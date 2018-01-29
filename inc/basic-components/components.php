@@ -1,3 +1,3 @@
 <?php
 
-frc_api_load_components_in_directory(__DIR__);
+frc_register_components_folder(__DIR__);
