@@ -23,6 +23,8 @@ require_once 'inc/classes/base-component-class.php';
 
 require_once 'inc/query.php';
 
+require_once 'inc/cli/cli.php';
+
 //Set the default options
 frc_set_options([
     'default_frc_post_class'            => 'FRC_Post',

@@ -13,16 +13,23 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
     public $component_path          = "";
 
     public function __construct () {
+        $this->definition();
+
         $this->set_component_path();
     }
 
     public function prepare ($data) {
         $this->component_data = $data;
-
+        
         $this->init();
     }
 
+    public function definition () {
+
+    }
+
     public function init () {
+        
     }
 
     public function prepare_data ($data) {
