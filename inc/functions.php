@@ -157,3 +157,7 @@ function frc_get_components_of_types ($component_types) {
 
     return $components;
 }
+
+function frc_register_post_type_components ($post_type, $component_setups, $proper_name) {
+    return FRC::get_instance()->register_post_type_components($post_type, $component_setups, $proper_name);
+}

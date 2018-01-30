@@ -35,8 +35,8 @@ class FRC {
     
     public function setup_basic_post_type_components () {
         if($this->options['setup_basic_post_type_components']) {
-            $this->setup_components('post', [['types' => 'post-component']], 'Post');
-            $this->setup_components('page', [['types' => 'post-component']], 'Page');
+            $this->register_post_type_components('post', [['types' => 'post-component']], 'Post');
+            $this->register_post_type_components('page', [['types' => 'post-component']], 'Page');
         }
     }
 
@@ -143,12 +143,12 @@ class FRC {
     
                 //Component initializations
                 if(is_array($reference_class->component_setups) && !empty($reference_class->component_setups))
-                    $this->setup_components($post_type_key_name, $reference_class->component_setups, $post_type_proper_name);
+                    $this->register_post_type_components($post_type_key_name, $reference_class->component_setups, $post_type_proper_name);
             }
         }
     }
 
-    public function setup_components ($post_type, $component_setups, $proper_name) {
+    public function register_post_type_components ($post_type, $component_setups, $proper_name) {
         if(empty($component_setups) || !is_array($component_setups))
             return;
 
