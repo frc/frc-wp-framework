@@ -35,16 +35,35 @@ The FRC WP Framework consists of multiple different systems. They are:
 
 The custom post type system is made for the ease of just describing your custom post type in php class form. It includes the posts acf_fields and categories etc.
 
-A custom post type can just be created by defining a class in a php file in the templates inc -dir (or where ever you store these kind of files, the directory doesn't really matter) that inherits from the `FRC_Post_Base_Class`.
+A custom post type can be created by creating a directory for the custom post types and creating a file there and class in the file with the same name (in this example `My_Custom_Post_Type.php`) and then then registering the custom post types directory. 
 
-Like so:
+For example under the themes -directory:
+
+```
+- your-theme/
+    |- inc/
+    |   |- custom-post-types/
+    |       |- My_Custom_Post_Type.php
+    |- style.css
+    |- functions.php
+    |- index.php
+
+```
+
+And in the `My_Custom_Post_type.php` you add:
 ```
 class My_Custom_Post_Type inherits FRC_Post_Base_Class {
 
 }
 ```
+After that you add in in the `functions.php` -file:
+```
+frc_register_custom_post_types_folder(get_stylesheet_directory() . '/inc/custom-post-types');
+```
 
-That's it. You've got a custom post type. It doesn't contain anything that interesting, but it is a basic run of the mill post -like post type.
+That's it. You've got a custom post types folder registered and one custom post type. It doesn't contain anything that interesting, but it is a basic run of the mill post -like post type.
+
+You can add more post types by just creating a `.php` -file under the `custom-post-types` -folder and creating the appropriate classes inside it.
 
 You can use these objects just like regular WP_Post objects. These objects are fetched with the `frc_get_post()` -helper function. Like so:
 

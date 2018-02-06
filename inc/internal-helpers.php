@@ -120,41 +120,6 @@ function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
     return $required_data;
 }
 
-function frc_api_get_base_class_children ($base_class = false) {
-    $additional_classes = FRC::get_instance()->additional_classes;
-    $excluded_classes = FRC::get_instance()->excluded_classes;
-
-    if(!$base_class)
-        return [];
-
-    $output = [];
-
-    $declared_classes = get_declared_classes();
-
-    foreach($declared_classes as $class_name) {
-        if(get_parent_class($class_name) != $base_class
-            || (isset($excluded_classes[$base_class])
-                && is_array($excluded_classes[$base_class])
-                && in_array($class_name, $excluded_classes[$base_class])))
-            continue;
-
-        $output[frc_api_name_to_key($class_name)] = $class_name;
-    }
-
-    if($additional_classes) {
-        foreach($additional_classes as $class_name) {
-            if(isset($excluded_classes[$base_class])
-                && is_array($excluded_classes[$base_class])
-                && in_array($class_name, $excluded_classes[$base_class]))
-                continue;
-
-            $output[frc_api_name_to_key($class_name)] = $class_name;
-        }
-    }
-
-    return $output;
-}
-
 function frc_api_get_render_transient_data () {
     return get_transient("_frc_render_transient_data") ? get_transient("_frc_render_transient_data") : [];
 }

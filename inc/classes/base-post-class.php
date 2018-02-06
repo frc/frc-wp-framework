@@ -226,4 +226,3 @@ class FRC_Post_Base_Class {
 */
 class FRC_Post extends FRC_Post_Base_Class {
 }
-frc_exclude_class("FRC_Post", "FRC_Post_Base_Class");

@@ -6,21 +6,22 @@ class FRC {
     public $component_setups;
     public $component_data_locations;
     public $component_classes;
+
+    public $custom_post_type_classes;
+
     public $component_root_folders;
+    public $custom_post_type_root_folders;
 
     public $local_cache_stack;
     public $additional_classes;
     public $excluded_classes;
 
-    public $custom_post_types;
-
     public function __construct () {
-        add_action('init', [$this, "collect_custom_post_types"]);
-
         add_action('init', [$this, "setup_custom_post_types"]);
 
-        if(defined("ACF_PRO"))
+        if($this->options['setup_basic_post_type_components']) {
             add_action('init', [$this, "setup_basic_post_type_components"]);
+        }
     }
 
     static public function get_instance () {
@@ -34,20 +35,14 @@ class FRC {
     }
     
     public function setup_basic_post_type_components () {
-        if($this->options['setup_basic_post_type_components']) {
-            $this->register_post_type_components('post', [['types' => 'post-component']], 'Post');
-            $this->register_post_type_components('page', [['types' => 'post-component']], 'Page');
-        }
-    }
-
-    public function collect_custom_post_types () {
-        $this->custom_post_types = frc_api_get_base_class_children("FRC_Post_Base_Class");
+        $this->register_post_type_components('post', [['types' => 'post-component']], 'Post');
+        $this->register_post_type_components('page', [['types' => 'post-component']], 'Page');
     }
 
     public function setup_custom_post_types () {
-        foreach($this->custom_post_types as $post_type_key_name => $class_name) {
+        foreach($this->custom_post_type_classes as $post_type_key_name => $class_name) {
             $reference_class = new $class_name();
-    
+
             $post_type_proper_name = $reference_class->options['proper_name'] ?? frc_api_class_name_to_proper($class_name);
     
             $post_type_key_name = $reference_class->options['key_name'] ?? $post_type_key_name;
@@ -142,14 +137,14 @@ class FRC {
                 }
     
                 //Component initializations
-                if(is_array($reference_class->component_setups) && !empty($reference_class->component_setups))
+                if(!empty($reference_class->component_setups))
                     $this->register_post_type_components($post_type_key_name, $reference_class->component_setups, $post_type_proper_name);
             }
         }
     }
 
-    public function register_post_type_components ($post_type, $component_setups, $proper_name) {
-        if(empty($component_setups) || !is_array($component_setups))
+    public function register_post_type_components (string $post_type, array $component_setups, string $proper_name) {
+        if(empty($component_setups))
             return;
 
         $current_index = 0;
@@ -178,7 +173,7 @@ class FRC {
                 $component_acf_fields[$component_key] = [
                     'key'        => $component_key,
                     'name'       => frc_api_name_to_key($component),
-                    'label'      => frc_api_class_name_to_proper($component),
+                    'label'      => $component_reference_class->proper_name ?? frc_api_class_name_to_proper($component),
                     'sub_fields' => $component_reference_class->acf_schema
                 ];
             }
@@ -245,6 +240,10 @@ class FRC {
 
         if(!empty($directory))
             $this->component_locations[$class_name] = $directory;
+    }
+
+    public function register_custom_post_type_class ($class_name) {
+        $this->custom_post_type_classes[frc_api_name_to_key($class_name)] = $class_name;
     }
 
     static public function use_cache () {

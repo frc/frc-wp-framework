@@ -54,7 +54,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
     //Save the class of the post so we don't have to figure it out every time
     if(FRC::use_cache() || ($post_class_to_use = frc_api_get_post_class_type($post_id)) === false) {
-        $children = FRC::get_instance()->custom_post_types;
+        $children = FRC::get_instance()->custom_post_type_classes;
 
         if(isset($children[get_post_type($post_id)])) {
             $post_class_to_use = $children[get_post_type($post_id)];
@@ -103,16 +103,40 @@ function frc_render ($file, $data = [], $cache_result_hooks = false) {
     echo frc_get_render($file, $data, $cache_result_hooks);
 }
 
-function frc_add_class ($class_name, $base_class) {
-    FRC::get_instance()->additional_classes[$base_class][] = $class_name;
-}
+function frc_register_custom_post_types_folder ($custom_post_type_folder) {
+    $frc_framework = FRC::get_instance();
 
-function frc_exclude_class ($class_name, $base_class) {
-    FRC::get_instance()->excluded_classes[$base_class][] = $class_name;
+    if(!file_exists($custom_post_type_folder)) {
+        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_folder . ").", E_USER_ERROR);
+    }
+
+    $frc_framework->custom_post_type_root_folders[] = $custom_post_type_folder;
+
+    $custom_post_type_folder = rtrim($custom_post_type_folder, "/");
+
+    $contents = array_diff(scandir($custom_post_type_folder), ['..', '.']);
+
+    foreach(glob($custom_post_type_folder . '/*.php') as $file) {
+        $file_info = pathinfo(basename($file));
+        
+        $class_name = $file_info['filename'];
+
+        require_once $custom_post_type_folder . '/' . basename($file);
+
+        if(!class_exists($class_name)) {
+            trigger_error("Found custom post type file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_ERROR);
+        } else {
+            $frc_framework->register_custom_post_type_class($class_name);
+        }
+    }
 }
 
 function frc_register_components_folder ($components_directory) {
     $frc_framework = FRC::get_instance();
+
+    if(!file_exists($components_directory)) {
+        trigger_error("Trying to register a components folder, but it doesn't exist (" . $components_directory . ").", E_USER_ERROR);
+    }
 
     $frc_framework->component_root_folders[] = $components_directory;
 
@@ -145,6 +169,11 @@ function frc_get_components_of_types ($component_types) {
 
     $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
    
+    $component_classes = $frc_framework->component_classes;
+
+    if(!$component_classes || empty($component_classes))
+        return [];
+
     $components = [];
     foreach($frc_framework->component_classes as $component) {
         $reference_class = new $component();

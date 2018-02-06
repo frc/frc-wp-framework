@@ -26,7 +26,7 @@ require_once 'inc/query.php';
 //Set the default options
 frc_set_options([
     'default_frc_post_class'            => 'FRC_Post',
-    'local_cache_stack_size'            => 10,
+    'local_cache_stack_size'            => 20,
     'cache_whole_post_objects'          => true,
     'setup_basic_post_type_components'  => true,
     'use_caching'                       => true
