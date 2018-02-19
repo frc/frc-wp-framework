@@ -164,6 +164,32 @@ function frc_register_components_folder ($components_directory) {
     }
 }
 
+function frc_register_options_folder ($options_directory) {
+    $frc_framework = FRC::get_instance();
+
+    if(!file_exists($options_directory)) {
+        trigger_error("Trying to register a options folder, but it doesn't exist (" . $options_directory . ").", E_USER_ERROR);
+    }
+
+    $options_directory = rtrim($options_directory, "/");
+
+    $contents = array_diff(scandir($options_directory), ['..', '.']);
+
+    foreach(glob($options_directory . '/*.php') as $file) {
+        $file_info = pathinfo(basename($file));
+
+        $class_name = $file_info['filename'];
+
+        require_once $options_directory . '/' . basename($file);
+
+        if(!class_exists($class_name)) {
+            trigger_error("Found options file (" . $file . "), but not a class with the same name (" . $class_name . ").", E_USER_ERROR);
+        } else {
+            $frc_framework->register_options_class($class_name);
+        }
+    }
+}
+
 function frc_get_components_of_types ($component_types) {
     $frc_framework = FRC::get_instance();
 

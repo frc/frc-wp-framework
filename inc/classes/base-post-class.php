@@ -1,5 +1,13 @@
 <?php
+
+/**
+ * Class FRC_Post_Base_Class
+ *
+ */
 class FRC_Post_Base_Class {
+    public      $acf_schema;
+    public      $acf_schema_groups;
+
     public      $acf_fields;
     public      $categories;
     public      $components;
@@ -9,6 +17,7 @@ class FRC_Post_Base_Class {
                         'types' => ['base-component']
                     ]
                 ];
+
     public      $included_acf_fields;
 
     public      $options;

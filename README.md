@@ -63,7 +63,7 @@ frc_register_custom_post_types_folder(get_stylesheet_directory() . '/inc/custom-
 
 That's it. You've got a custom post types folder registered and one custom post type. It doesn't contain anything that interesting, but it is a basic run of the mill post -like post type.
 
-You can add more post types by just creating a `.php` -file under the `custom-post-types` -folder and creating the appropriate classes inside it.
+You can add more post types by just creating a `.php` -file under the `custom-post-types` -folder and creating the appropriate class inside it.
 
 You can use these objects just like regular WP_Post objects. These objects are fetched with the `frc_get_post()` -helper function. Like so:
 

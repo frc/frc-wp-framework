@@ -9,6 +9,8 @@ class FRC {
 
     public $custom_post_type_classes;
 
+    public $options_classes;
+
     public $component_root_folders;
     public $custom_post_type_root_folders;
 
@@ -37,6 +39,27 @@ class FRC {
     public function setup_basic_post_type_components () {
         $this->register_post_type_components('post', [['types' => 'post-component']], 'Post');
         $this->register_post_type_components('page', [['types' => 'post-component']], 'Page');
+    }
+
+    public function setup_options_pages () {
+        foreach($this->options_classes as $class_name) {
+            $reference_class = new $class_name();
+
+            $options_page_proper_name = $reference_class->options['proper_name'] ?? frc_api_class_name_to_proper($class_name);
+
+            $options_page_key_name = $reference_class->options['key_name'] ?? frc_api_name_to_key($class_name);
+
+
+            $default_args = array_replace_recursive([
+                'page_title' 	=> $options_page_proper_name,
+                'menu_title'	=> $options_page_proper_name,
+                'menu_slug' 	=> $options_page_key_name,
+                'capability'	=> 'edit_posts',
+                'redirect'		=> false
+            ], $reference_class->args);
+
+            acf_add_options_page($default_args);
+        }
     }
 
     public function setup_custom_post_types () {
@@ -143,7 +166,7 @@ class FRC {
         }
     }
 
-    public function register_post_type_components (string $post_type, array $component_setups, string $proper_name) {
+    public function register_post_type_components ($post_type, $component_setups, $proper_name) {
         if(empty($component_setups))
             return;
 
@@ -240,6 +263,10 @@ class FRC {
 
         if(!empty($directory))
             $this->component_locations[$class_name] = $directory;
+    }
+
+    public function register_options_class ($class_name) {
+        $this->options_classes[] = $class_name;
     }
 
     public function register_custom_post_type_class ($class_name) {

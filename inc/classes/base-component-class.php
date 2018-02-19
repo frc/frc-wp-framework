@@ -1,6 +1,6 @@
 <?php
 
-class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
+class FRC_Component_Base_Class {
     public $acf_schema              = [];
     public $acf_schema_groups       = [];
 
@@ -25,11 +25,9 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
     }
 
     public function definition () {
-
     }
 
     public function init () {
-        
     }
 
     public function prepare_data ($data) {
@@ -41,8 +39,10 @@ class FRC_Component_Base_Class implements FRC_Component_Base_Interface {
     }
 
     public function render () {
-        if(empty($this->component_view_file))
+        if(empty($this->component_view_file)) {
+            trigger_error("Trying to render a component, but the component view file (" . $this->component_view_file . ") is empty.", E_USER_ERROR);
             return;
+        }
 
         $component_data = $this->component_data;
 
