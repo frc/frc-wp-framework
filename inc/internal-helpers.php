@@ -115,22 +115,6 @@ function frc_api_render ($file, $data = [], $extract = false) {
     return ob_get_clean();
 }
 
-function frc_api_get_render_transient_data () {
-    return get_transient("_frc_render_transient_data") ? get_transient("_frc_render_transient_data") : [];
-}
-
-function frc_api_set_render_transient_data($data) {
-    return set_transient("_frc_render_transient_data", $data);
-}
-
-function frc_api_add_render_transient_data ($transient_key, $hooks) {
-    $transient_data = frc_api_get_render_transient_data();
-
-    $transient_data[$transient_key] = $hooks;
-
-    frc_api_set_render_transient_data($transient_data);
-}
-
 function frc_api_get_component_path ($component) {
     return FRC::get_instance()->component_locations[$component] ?? false;
 }
