@@ -18,7 +18,6 @@ require_once 'inc/functions.php';
 require_once 'inc/transient-management.php';
 
 require_once 'inc/classes/base-post-class.php';
-require_once 'inc/classes/base-component-interface.php';
 require_once 'inc/classes/base-component-class.php';
 
 require_once 'inc/query.php';

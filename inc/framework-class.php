@@ -63,6 +63,9 @@ class FRC {
     }
 
     public function setup_custom_post_types () {
+        if(empty($this->custom_post_type_classes))
+            return;
+
         foreach($this->custom_post_type_classes as $post_type_key_name => $class_name) {
             $reference_class = new $class_name();
 

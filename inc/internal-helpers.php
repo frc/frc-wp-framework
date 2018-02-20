@@ -101,23 +101,18 @@ function frc_api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     return $acf_schema;
 }
 
-function frc_api_render ($file, $data = [], $cache_result_hooks = false) {
-    $transient_key = '_frc_render_' . md5($file . serialize($data));
-
-    if(!$cache_result_hooks || ($required_data = get_transient($transient_key)) === false) {
-        ob_start();
+function frc_api_render ($file, $data = [], $extract = false) {
+    if($extract) {
         extract((array) $data);
-
-        require_once $file;
-        $required_data = ob_get_clean();
-
-        if($cache_result_hooks) {
-            set_transient($transient_key, $required_data, WEEK_IN_SECONDS);
-            frc_api_add_render_transient_data($transient_key, $cache_result_hooks);
-        }
+    } else {
+        $data = (object) $data;
     }
 
-    return $required_data;
+    ob_start();
+
+    include $file;
+
+    return ob_get_clean();
 }
 
 function frc_api_get_render_transient_data () {

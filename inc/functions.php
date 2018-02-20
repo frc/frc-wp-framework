@@ -42,7 +42,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
         $post_id = $GLOBALS['post']->ID;
 
     $whole_object_transient_key = "_frc_post_whole_object_" . $post_id;
-    
+
     if(FRC::use_cache() && $frc_options['cache_whole_post_objects'] && !$get_fresh) {
         if(($post = get_transient($whole_object_transient_key)) !== false) {
             $post->remove_unused_post_data();
@@ -90,17 +90,11 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
     return $post;
 }
 
-function frc_get_render ($file, $data = [], $cache_result_hooks = false) {
-    $trace_back = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+function frc_render($file, $data = [], $extract = false) {
+    if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
+        $file .= '.php';
 
-    $dir = dirname($trace_back[1]['file']);
-
-    $file = $dir . "/" . trim($file, "/");
-    return frc_api_render($file, $data, $cache_result_hooks);
-}
-
-function frc_render ($file, $data = [], $cache_result_hooks = false) {
-    echo frc_get_render($file, $data, $cache_result_hooks);
+    return frc_api_render(get_stylesheet_directory() . '/' . ltrim($file, '/'), $data, $extract);
 }
 
 function frc_register_custom_post_types_folder ($custom_post_type_folder) {
@@ -118,7 +112,7 @@ function frc_register_custom_post_types_folder ($custom_post_type_folder) {
 
     foreach(glob($custom_post_type_folder . '/*.php') as $file) {
         $file_info = pathinfo(basename($file));
-        
+
         $class_name = $file_info['filename'];
 
         require_once $custom_post_type_folder . '/' . basename($file);
@@ -194,7 +188,7 @@ function frc_get_components_of_types ($component_types) {
     $frc_framework = FRC::get_instance();
 
     $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
-   
+
     $component_classes = $frc_framework->component_classes;
 
     if(!$component_classes || empty($component_classes))
