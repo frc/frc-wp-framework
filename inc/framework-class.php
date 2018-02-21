@@ -1,4 +1,5 @@
 <?php
+namespace FRC;
 
 class FRC {
     public $options;
@@ -45,9 +46,9 @@ class FRC {
         foreach($this->options_classes as $class_name) {
             $reference_class = new $class_name();
 
-            $options_page_proper_name = $reference_class->options['proper_name'] ?? frc_api_class_name_to_proper($class_name);
+            $options_page_proper_name = $reference_class->options['proper_name'] ?? api_class_name_to_proper($class_name);
 
-            $options_page_key_name = $reference_class->options['key_name'] ?? frc_api_name_to_key($class_name);
+            $options_page_key_name = $reference_class->options['key_name'] ?? api_name_to_key($class_name);
 
 
             $default_args = array_replace_recursive([
@@ -69,7 +70,7 @@ class FRC {
         foreach($this->custom_post_type_classes as $post_type_key_name => $class_name) {
             $reference_class = new $class_name();
 
-            $post_type_proper_name = $reference_class->options['proper_name'] ?? frc_api_class_name_to_proper($class_name);
+            $post_type_proper_name = $reference_class->options['proper_name'] ?? api_class_name_to_proper($class_name);
     
             $post_type_key_name = $reference_class->options['key_name'] ?? $post_type_key_name;
     
@@ -134,7 +135,7 @@ class FRC {
                 $options_acf_groups = $reference_class->acf_schema_groups ?? false;
     
                 if($options_acf_groups) {
-                    $options_acf_groups = frc_api_proof_acf_schema_groups($options_acf_groups);
+                    $options_acf_groups = api_proof_acf_schema_groups($options_acf_groups);
                     
                     acf_add_local_field_group($options_acf_groups);
                 } else {   
@@ -144,9 +145,9 @@ class FRC {
                     if(isset($options_acf_fields) && !empty($options_acf_fields)) {
                         $field_group_key = str_replace("_", "", $post_type_key_name . '_fields');
                         
-                        $options_acf_fields = frc_api_proof_acf_schema($options_acf_fields, $field_group_key);
+                        $options_acf_fields = api_proof_acf_schema($options_acf_fields, $field_group_key);
                         
-                        acf_add_local_field_group(frc_api_proof_acf_schema_groups([
+                        acf_add_local_field_group(api_proof_acf_schema_groups([
                             'title'     => $reference_class->options['acf_group_name'] ?? $post_type_proper_name . ' Fields',
                             'fields'    => $options_acf_fields, 
                             'location' => [
@@ -189,17 +190,17 @@ class FRC {
             
             $component_setup_list = [];
 
-            foreach(frc_get_components_of_types($component_setup['types']) as $component) {
+            foreach(get_components_of_types($component_setup['types']) as $component) {
                 $component_reference_class = new $component();
 
-                $component_key = md5('group_' . $current_index . '_' . frc_api_name_to_key($component));
+                $component_key = md5('group_' . $current_index . '_' . api_name_to_key($component));
                 
-                $component_setup_list['components'][frc_api_name_to_key($component)] = $component;
+                $component_setup_list['components'][api_name_to_key($component)] = $component;
 
                 $component_acf_fields[$component_key] = [
                     'key'        => $component_key,
-                    'name'       => frc_api_name_to_key($component),
-                    'label'      => $component_reference_class->proper_name ?? frc_api_class_name_to_proper($component),
+                    'name'       => api_name_to_key($component),
+                    'label'      => $component_reference_class->proper_name ?? api_class_name_to_proper($component),
                     'sub_fields' => $component_reference_class->acf_schema
                 ];
             }
@@ -209,7 +210,7 @@ class FRC {
 
             $this->component_setups[$post_type][] = $component_setup_list;
             
-            $component_field_group_args = frc_api_proof_acf_schema_groups([
+            $component_field_group_args = api_proof_acf_schema_groups([
                 'title'     => $proper_name . ' Components',
                 'fields'    => [
                     [
@@ -257,7 +258,7 @@ class FRC {
         $this->local_cache_stack = $cache_posts;
     }
 
-    public function frc_get_from_local_cache_stack($post_id) {
+    public function get_from_local_cache_stack($post_id) {
         return $this->local_cache_stack[$post_id] ?? false;
     }
 
@@ -273,7 +274,7 @@ class FRC {
     }
 
     public function register_custom_post_type_class ($class_name) {
-        $this->custom_post_type_classes[frc_api_name_to_key($class_name)] = $class_name;
+        $this->custom_post_type_classes[api_name_to_key($class_name)] = $class_name;
     }
 
     static public function use_cache () {

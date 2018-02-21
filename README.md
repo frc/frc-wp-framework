@@ -52,7 +52,7 @@ For example under the themes -directory:
 
 And in the `My_Custom_Post_type.php` you add:
 ```
-class My_Custom_Post_Type inherits FRC_Post_Base_Class {
+class My_Custom_Post_Type inherits Post_Base_Class {
 
 }
 ```
@@ -68,7 +68,7 @@ You can add more post types by just creating a `.php` -file under the `custom-po
 You can use these objects just like regular WP_Post objects. These objects are fetched with the `frc_get_post()` -helper function. Like so:
 
 ```
-$post = frc_get_post($post_id);
+$post = get_post($post_id);
 
 echo $post->ID;
 ```
@@ -77,7 +77,7 @@ Now that post type has been created. You can define some schemas to it. You can 
 
 Like so:
 ```
-class My_Custom_Post_Type inherits FRC_Post_Base_Class {
+class My_Custom_Post_Type inherits Post_Base_Class {
     public $taxonomies = [
         'my_custom_taxonomy',
         'another_my_custom_taxonomy'
@@ -106,7 +106,7 @@ These arguments follow the basic wordpress [register_taxonomy](https://codex.wor
 
 You can also define similiarly the [register_post_type](https://codex.wordpress.org/Function_Reference/register_post_type) arguments with the `$args` -member:
 ```
-class My_Custom_Post_Type inherits FRC_Post_Base_Class {
+class My_Custom_Post_Type inherits Post_Base_Class {
     public $args = [
         'description' => 'Description here',
         'has_archive' => true,
@@ -124,7 +124,7 @@ Custom post types also has the ability to define ACF fields to be defined in the
 
 Like so:
 ```
-class My_Custom_Post_Type inherits FRC_Post_Base_Class {
+class My_Custom_Post_Type inherits Post_Base_Class {
     public $acf_schema = [
         [
             'name' => 'a_field',

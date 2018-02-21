@@ -1,6 +1,7 @@
 <?php
+namespace FRC;
 
-class FRC_WP_Query extends WP_Query {
+class FRC_Query extends \WP_Query {
     public $is_from_cache = false;
     public $cache_results;
     public $expiration_time = WEEK_IN_SECONDS;
@@ -25,11 +26,11 @@ class FRC_WP_Query extends WP_Query {
 
             $wp_query_transient_list[] = $transient_key;
 
-            frc_api_add_transient_to_group_list("wp_query", $transient_key);
+            api_add_transient_to_group_list("wp_query", $transient_key);
 
             $query_result = [];
             foreach($tmp_query_result as $query_post) {
-                $query_result[] = frc_get_post($query_post->ID);
+                $query_result[] = get_post($query_post->ID);
             }
 
             if(FRC::use_cache()) {
@@ -46,7 +47,7 @@ class FRC_WP_Query extends WP_Query {
 }
 
 add_action('save_post', function () {
-    $wp_query_transient_list = frc_api_get_transient_group_list("wp_query");
+    $wp_query_transient_list = api_get_transient_group_list("wp_query");
 
     $new_transient_list = [];
     foreach($wp_query_transient_list as $transient) {
@@ -55,5 +56,5 @@ add_action('save_post', function () {
         $new_transient_list = $transient;
     }
 
-    frc_api_set_transient_group_list("wp_query", $new_transient_list);
+    api_set_transient_group_list("wp_query", $new_transient_list);
 });

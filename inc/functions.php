@@ -1,6 +1,7 @@
 <?php
+namespace FRC;
 
-function frc_set_options ($options = [], $override = false) {
+function set_options ($options = [], $override = false) {
     $current_options = FRC::get_instance()->options;
 
     $last_options = $current_options ?? [];
@@ -11,30 +12,30 @@ function frc_set_options ($options = [], $override = false) {
         FRC::get_instance()->options = $options;
 }
 
-function frc_get_options () {
+function get_options () {
     return FRC::get_instance()->options;
 }
 
-function frc_get_from_local_cache_stack ($post_id) {
-    return FRC::get_instance()->frc_get_from_local_cache_stack($post_id);
+function get_from_local_cache_stack ($post_id) {
+    return FRC::get_instance()->get_from_local_cache_stack($post_id);
 }
 
-function frc_add_to_local_cache_stack ($post) {
+function add_to_local_cache_stack ($post) {
     FRC::get_instance()->add_to_local_cache_stack($post);
 }
 
-function frc_set_local_cache_stack ($posts) {
+function set_local_cache_stack ($posts) {
     FRC::get_instance()->set_local_cache_stack($post);
 }
 
-function frc_get_post ($post_id = null, $get_fresh = false) {
+function get_post ($post_id = null, $get_fresh = false) {
 
-    if(($post = frc_get_from_local_cache_stack($post_id)) !== false) {
+    if(($post = get_from_local_cache_stack($post_id)) !== false) {
         $post->remove_unused_post_data();
         return $post;
     }
 
-    $frc_options = frc_get_options();
+    $frc_options = get_options();
 
     if(is_object($post_id) && $post_id instanceof WP_Post)
         $post_id = $post_id->ID;
@@ -47,13 +48,13 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
         if(($post = get_transient($whole_object_transient_key)) !== false) {
             $post->remove_unused_post_data();
             $post->served_from_cache = true;
-            frc_add_to_local_cache_stack($post);
+            add_to_local_cache_stack($post);
             return $post;
         }
     }
 
     //Save the class of the post so we don't have to figure it out every time
-    if(FRC::use_cache() || ($post_class_to_use = frc_api_get_post_class_type($post_id)) === false) {
+    if(FRC::use_cache() || ($post_class_to_use = api_get_post_class_type($post_id)) === false) {
         $children = FRC::get_instance()->custom_post_type_classes;
 
         if(isset($children[get_post_type($post_id)])) {
@@ -63,7 +64,7 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
         }
 
         if(FRC::use_cache()) {
-            frc_api_set_post_class_type($post_id, $post_class_to_use);
+            api_set_post_class_type($post_id, $post_class_to_use);
         }
     }
 
@@ -82,22 +83,22 @@ function frc_get_post ($post_id = null, $get_fresh = false) {
 
         set_transient($whole_object_transient_key, $post);
 
-        frc_api_add_transient_to_group_list("post_" . $post_id, $whole_object_transient_key);
+        api_add_transient_to_group_list("post_" . $post_id, $whole_object_transient_key);
     }
 
-    frc_add_to_local_cache_stack($post);
+    add_to_local_cache_stack($post);
 
     return $post;
 }
 
-function frc_render($file, $data = [], $extract = false) {
+function render($file, $data = [], $extract = false) {
     if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
         $file .= '.php';
 
-    return frc_api_render(get_stylesheet_directory() . '/' . ltrim($file, '/'), $data, $extract);
+    return api_render(get_stylesheet_directory() . '/' . ltrim($file, '/'), $data, $extract);
 }
 
-function frc_register_custom_post_types_folder ($custom_post_type_folder) {
+function register_custom_post_types_folder ($custom_post_type_folder) {
     $frc_framework = FRC::get_instance();
 
     if(!file_exists($custom_post_type_folder)) {
@@ -125,7 +126,7 @@ function frc_register_custom_post_types_folder ($custom_post_type_folder) {
     }
 }
 
-function frc_register_components_folder ($components_directory) {
+function register_components_folder ($components_directory) {
     $frc_framework = FRC::get_instance();
 
     if(!file_exists($components_directory)) {
@@ -158,7 +159,7 @@ function frc_register_components_folder ($components_directory) {
     }
 }
 
-function frc_register_options_folder ($options_directory) {
+function register_options_folder ($options_directory) {
     $frc_framework = FRC::get_instance();
 
     if(!file_exists($options_directory)) {
@@ -184,7 +185,7 @@ function frc_register_options_folder ($options_directory) {
     }
 }
 
-function frc_get_components_of_types ($component_types) {
+function get_components_of_types ($component_types) {
     $frc_framework = FRC::get_instance();
 
     $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
@@ -207,6 +208,6 @@ function frc_get_components_of_types ($component_types) {
     return $components;
 }
 
-function frc_register_post_type_components ($post_type, $component_setups, $proper_name) {
+function register_post_type_components ($post_type, $component_setups, $proper_name) {
     return FRC::get_instance()->register_post_type_components($post_type, $component_setups, $proper_name);
 }

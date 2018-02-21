@@ -1,6 +1,7 @@
 <?php
+namespace FRC;
 
-class FRC_Component_Base_Class {
+class Component_Base_Class {
     public $acf_schema              = [];
     public $acf_schema_groups       = [];
 
@@ -48,11 +49,11 @@ class FRC_Component_Base_Class {
 
         $render_data = $this->prepare_data($component_data);
 
-        return frc_api_render($this->component_view_file, $render_data);
+        return api_render($this->component_view_file, $render_data);
     }
 
     public function set_component_path () {
-        $this->component_path = frc_api_get_component_path(get_class($this));
+        $this->component_path = api_get_component_path(get_class($this));
 
         $this->component_view_file = $this->component_path . '/view.php';
     }
@@ -62,10 +63,10 @@ class FRC_Component_Base_Class {
     }
 
     public function get_key_name () {
-        return frc_api_name_to_key(get_class($this));
+        return api_name_to_key(get_class($this));
     }
 
     public function get_label () {
-        return frc_api_class_name_to_proper(get_class($this));        
+        return api_class_name_to_proper(get_class($this));
     }
 }

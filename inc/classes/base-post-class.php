@@ -1,10 +1,11 @@
 <?php
+namespace FRC;
 
 /**
- * Class FRC_Post_Base_Class
+ * Class Post_Base_Class
  *
  */
-class FRC_Post_Base_Class {
+class Post_Base_Class {
     public      $acf_schema;
     public      $acf_schema_groups;
 
@@ -89,7 +90,7 @@ class FRC_Post_Base_Class {
             
             if(FRC::use_cache()) {
                 set_transient($transient_key, $component_list);
-                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+                api_add_transient_to_group_list("post_" . $post_id, $transient_key);
             }
         }
 
@@ -111,7 +112,7 @@ class FRC_Post_Base_Class {
             $transient_data = ['post' => $post, 'acf_fields' => $this->acf_fields, "categories" => $this->categories];
 
             if($this->cache_options['cache_whole_object'] && FRC::use_cache()) {
-                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+                api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                 set_transient($transient_key, $transient_data);
             }
         } else {
@@ -142,7 +143,7 @@ class FRC_Post_Base_Class {
                 }
 
                 if(FRC::use_cache()) {
-                    frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+                    api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                     set_transient($transient_key, $this->acf_fields);
                 }
             }
@@ -159,7 +160,7 @@ class FRC_Post_Base_Class {
             }
 
             if($this->cache_options['cache_categories'] && FRC::use_cache()) {
-                frc_api_add_transient_to_group_list("post_" . $post_id, $transient_key);
+                api_add_transient_to_group_list("post_" . $post_id, $transient_key);
                 set_transient($transient_key, $this->categories);
             }
         }
@@ -190,7 +191,7 @@ class FRC_Post_Base_Class {
 
             if(FRC::use_cache()) {
                 set_transient($transient_key, $components);
-                frc_api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
+                api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
             }
         }
 
@@ -207,7 +208,7 @@ class FRC_Post_Base_Class {
             update_field($field_key, $field_value, $this->ID);
         }
 
-        frc_api_delete_transients_in_group("post_" . $this->ID);
+        api_delete_transients_in_group("post_" . $this->ID);
 
         $this->saved();
 
@@ -215,7 +216,7 @@ class FRC_Post_Base_Class {
     }
 
     public function get_key_name () {
-        return frc_api_name_to_key(get_class($this));
+        return api_name_to_key(get_class($this));
     }
 
     protected function init () {
@@ -233,5 +234,5 @@ class FRC_Post_Base_Class {
     through the system and as this is not a custom post type,
     there is no need to put that through the registering machine.
 */
-class FRC_Post extends FRC_Post_Base_Class {
+class FRC_Post extends Post_Base_Class {
 }

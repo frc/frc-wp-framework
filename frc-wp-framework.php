@@ -1,4 +1,6 @@
 <?php
+namespace FRC;
+
 /* 
 Plugin name: FRC WP Framework
 Author: Taneli Heikkinen / Frantic Oy
@@ -7,6 +9,7 @@ Licence: GPLv3 or later
 Copyright: Taneli Heikkinen
 Version: 0.1
 */
+
 
 if(defined("FRC_WP_FRAMEWORK_INIT"))
     return;
@@ -23,7 +26,7 @@ require_once 'inc/classes/base-component-class.php';
 require_once 'inc/query.php';
 
 //Set the default options
-frc_set_options([
+set_options([
     'default_frc_post_class'            => 'FRC_Post',
     'local_cache_stack_size'            => 20,
     'cache_whole_post_objects'          => true,

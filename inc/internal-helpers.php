@@ -1,6 +1,7 @@
 <?php
+namespace FRC;
 
-function frc_api_get_transient_group_list ($transient_group) {
+function api_get_transient_group_list ($transient_group) {
     $query_list = get_transient("_frc_group_" . $transient_group);
 
     if(empty($query_list) || is_string($query_list))
@@ -9,27 +10,27 @@ function frc_api_get_transient_group_list ($transient_group) {
     return $query_list;
 }
 
-function frc_api_set_transient_group_list ($transient_group, $list) {
+function api_set_transient_group_list ($transient_group, $list) {
     set_transient("_frc_group_" . $transient_group, $list);
 }
 
-function frc_api_add_transient_to_group_list ($transient_group, $transient) {
-    $transients = frc_api_get_transient_group_list($transient_group);
+function api_add_transient_to_group_list ($transient_group, $transient) {
+    $transients = api_get_transient_group_list($transient_group);
     $transients[] = $transient;
-    frc_api_set_transient_group_list($transient_group, $transients);
+    api_set_transient_group_list($transient_group, $transients);
 }
 
-function frc_api_delete_transients_in_group ($transient_group) {
-    $list = frc_api_get_transient_group_list($transient_group);
+function api_delete_transients_in_group ($transient_group) {
+    $list = api_get_transient_group_list($transient_group);
 
     foreach($list as $transient) {
         delete_transient($transient);
     }
 
-    frc_api_set_transient_group_list($transient_group, []);
+    api_set_transient_group_list($transient_group, []);
 }
 
-function frc_api_get_post_class_type ($post_id) {
+function api_get_post_class_type ($post_id) {
     $class_types = get_transient('_frc_post_class_types');
 
     if(isset($class_types[$post_id]))
@@ -38,7 +39,7 @@ function frc_api_get_post_class_type ($post_id) {
     return false;
 }
 
-function frc_api_set_post_class_type ($post_id, $class_type) {
+function api_set_post_class_type ($post_id, $class_type) {
     $class_types = get_transient('_frc_post_class_types');
 
     $class_types[$post_id] = $class_type;
@@ -48,7 +49,7 @@ function frc_api_set_post_class_type ($post_id, $class_type) {
     return true;
 }
 
-function frc_api_remove_post_class_type($post_id) {
+function api_remove_post_class_type($post_id) {
     $class_types = get_transient('_frc_post_class_types');
 
     unset($class_types[$post_id]);
@@ -58,14 +59,14 @@ function frc_api_remove_post_class_type($post_id) {
     return true;
 }
 
-function frc_api_name_to_key ($name) {
+function api_name_to_key ($name) {
     $name = str_replace("-", "_", $name);
     $name = preg_replace("/[^a-zA-Z0-9\_]+/", "_", $name);
     $name = trim($name, "_");
     return strtolower($name);
 } 
 
-function frc_api_class_name_to_proper ($class_name) {
+function api_class_name_to_proper ($class_name) {
     if(is_object($class_name))
         $class_name = get_class($class_name);
 
@@ -74,34 +75,34 @@ function frc_api_class_name_to_proper ($class_name) {
     return $post_type_proper_name;
 }
 
-function frc_api_proof_acf_schema_groups ($acf_schema_groups, $prefix = "") {
+function api_proof_acf_schema_groups ($acf_schema_groups, $prefix = "") {
     if(!isset($acf_schema_groups['key']))
-        $acf_schema_groups['key'] = $prefix . frc_api_name_to_key($acf_schema_groups['title']);
+        $acf_schema_groups['key'] = $prefix . api_name_to_key($acf_schema_groups['title']);
 
-    $acf_schema_groups['fields'] = frc_api_proof_acf_schema($acf_schema_groups['fields'], $prefix . $acf_schema_groups['key'] . '_fields');
+    $acf_schema_groups['fields'] = api_proof_acf_schema($acf_schema_groups['fields'], $prefix . $acf_schema_groups['key'] . '_fields');
 
     return $acf_schema_groups;
 }
 
-function frc_api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
+function api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     foreach($acf_schema as $key => $field) {
         if(!isset($field['key'])) {
             $acf_schema[$key]['key'] = $prefix . "_" . $field['name'];
         }
 
         if(isset($field['sub_fields'])) {
-            $acf_schema[$key]['sub_fields'] = frc_api_proof_acf_schema($field['sub_fields'], $prefix . "_" . $field['name']);
+            $acf_schema[$key]['sub_fields'] = api_proof_acf_schema($field['sub_fields'], $prefix . "_" . $field['name']);
         }
 
         if(isset($field['layouts'])) {
-            $acf_schema[$key]['layouts'] = frc_api_proof_acf_schema($field['layouts'], $prefix . '_' . $key, true);
+            $acf_schema[$key]['layouts'] = api_proof_acf_schema($field['layouts'], $prefix . '_' . $key, true);
         }
     }
 
     return $acf_schema;
 }
 
-function frc_api_render ($file, $data = [], $extract = false) {
+function api_render ($file, $data = [], $extract = false) {
     if($extract) {
         extract((array) $data);
     } else {
@@ -115,6 +116,6 @@ function frc_api_render ($file, $data = [], $extract = false) {
     return ob_get_clean();
 }
 
-function frc_api_get_component_path ($component) {
+function api_get_component_path ($component) {
     return FRC::get_instance()->component_locations[$component] ?? false;
 }

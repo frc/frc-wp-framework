@@ -1,6 +1,6 @@
 <?php
 
-class Basic_Quote_Component extends FRC_Component_Base_Class {
+class Basic_Quote_Component extends Component_Base_Class {
     public $acf_schema = [
         [
             'label' => 'Quote',

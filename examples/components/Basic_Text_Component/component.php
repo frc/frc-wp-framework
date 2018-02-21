@@ -1,6 +1,6 @@
 <?php
 
-class Basic_Text_Component extends FRC_Component_Base_Class {
+class Basic_Text_Component extends Component_Base_Class {
     public $component_types = [
         'base-component',
         'post-component',
