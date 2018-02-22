@@ -31,7 +31,7 @@ class FRC {
         global $frc_framework_instance;
 
         if(!$frc_framework_instance) {
-            $frc_framework_instance = new FRC();
+            $frc_framework_instance = new self();
         }
 
         return $frc_framework_instance;

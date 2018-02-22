@@ -1,7 +1,7 @@
 <?php
 namespace FRC;
 
-class FRC_Query extends \WP_Query {
+class Query extends \WP_Query {
     public $is_from_cache = false;
     public $cache_results;
     public $expiration_time = WEEK_IN_SECONDS;

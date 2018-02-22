@@ -37,10 +37,11 @@ function get_post ($post_id = null, $get_fresh = false) {
 
     $frc_options = get_options();
 
-    if(is_object($post_id) && $post_id instanceof WP_Post)
+    if(is_object($post_id) && $post_id instanceof \WP_Post) {
         $post_id = $post_id->ID;
-    else if(empty($post_id) && isset($GLOBALS['post']))
+    } else if(empty($post_id) && isset($GLOBALS['post'])) {
         $post_id = $GLOBALS['post']->ID;
+    }
 
     $whole_object_transient_key = "_frc_post_whole_object_" . $post_id;
 
@@ -60,7 +61,7 @@ function get_post ($post_id = null, $get_fresh = false) {
         if(isset($children[get_post_type($post_id)])) {
             $post_class_to_use = $children[get_post_type($post_id)];
         } else {
-            $post_class_to_use = $frc_options['default_frc_post_class'] ?? "FRC_Post";
+            $post_class_to_use = $frc_options['default_frc_post_class'] ?? "FRC\Post";
         }
 
         if(FRC::use_cache()) {

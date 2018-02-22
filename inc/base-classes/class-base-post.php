@@ -5,7 +5,7 @@ namespace FRC;
  * Class Post_Base_Class
  *
  */
-class Post_Base_Class {
+abstract class Post_Base_Class {
     public      $acf_schema;
     public      $acf_schema_groups;
 
@@ -31,8 +31,8 @@ class Post_Base_Class {
                     'cache_components'      => false
                 ];
 
-    protected   $keep_build_data    = false;
     public      $served_from_cache  = false;
+    protected   $keep_build_data    = false;
     private     $post_constructed   = false;
 
     public function __construct ($post_id = null, $cache_options = []) {
@@ -103,7 +103,7 @@ class Post_Base_Class {
         $transient_key = '_frc_api_post_object_' . $post_id;
 
         if(!FRC::use_cache() || !$this->cache_options['cache_whole_object'] || ($transient_data = get_transient($transient_key)) === false) {
-            $post = get_object_vars(WP_Post::get_instance($post_id));
+            $post = get_object_vars(\WP_Post::get_instance($post_id));
 
             $this->construct_acf_fields($post_id);
             
@@ -125,6 +125,9 @@ class Post_Base_Class {
 
         $this->acf_fields       = $transient_data['acf_fields'];
         $this->categories       = $transient_data['categories'];
+        $this->post_permalink   = get_the_permalink($this->ID);
+        $this->attachments      = get_attached_media('', $this->ID);
+        $this->meta_data        = $this->prepare_post_metadata($this->ID);
     }
 
     public function construct_acf_fields ($post_id) {
@@ -156,7 +159,10 @@ class Post_Base_Class {
         $transient_key = '_frc_api_post_categories_' . $post_id;
         if(FRC::use_cache() || ($this->categories = get_transient($transient_key)) === false) {
             foreach(get_categories($post_id) as $category) {
-                $this->categories[] = get_object_vars($category);
+                $new_category = get_object_vars($category);
+                $new_category['link'] = get_term_link($category->term_id);
+
+                $this->categories[] = $new_category;
             }
 
             if($this->cache_options['cache_categories'] && FRC::use_cache()) {
@@ -164,6 +170,13 @@ class Post_Base_Class {
                 set_transient($transient_key, $this->categories);
             }
         }
+    }
+
+    public function prepare_post_metadata () {
+        return (object) [
+            'author_url' => get_author_posts_url($this->post_author),
+            'author_name' => get_the_author_meta('display_name', $this->post_author)
+        ];
     }
 
     public function get_components () {
@@ -196,6 +209,10 @@ class Post_Base_Class {
         }
 
         return $components;
+    }
+
+    public function get_thumbnail () {
+        return Attachment::from_post_thumbnail($this->ID);
     }
 
     public function save () {
@@ -234,5 +251,5 @@ class Post_Base_Class {
     through the system and as this is not a custom post type,
     there is no need to put that through the registering machine.
 */
-class FRC_Post extends Post_Base_Class {
+class Post extends Post_Base_Class {
 }

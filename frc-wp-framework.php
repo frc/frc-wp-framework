@@ -14,20 +14,20 @@ Version: 0.1
 if(defined("FRC_WP_FRAMEWORK_INIT"))
     return;
 
-require_once 'inc/framework-class.php';
+require_once 'inc/classes/class-framework.php';
+require_once 'inc/classes/class-attachment.php';
+require_once 'inc/classes/class-query.php';
+
+require_once 'inc/base-classes/class-base-post.php';
+require_once 'inc/base-classes/class-base-component.php';
 
 require_once 'inc/internal-helpers.php';
 require_once 'inc/functions.php';
 require_once 'inc/transient-management.php';
 
-require_once 'inc/classes/base-post-class.php';
-require_once 'inc/classes/base-component-class.php';
-
-require_once 'inc/query.php';
-
 //Set the default options
 set_options([
-    'default_frc_post_class'            => 'FRC_Post',
+    'default_frc_post_class'            => 'FRC\Post',
     'local_cache_stack_size'            => 20,
     'cache_whole_post_objects'          => true,
     'setup_basic_post_type_components'  => true,
