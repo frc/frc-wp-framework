@@ -6,6 +6,8 @@ namespace FRC;
  *
  */
 abstract class Post_Base_Class {
+    public      $create_post_type = true;
+
     public      $acf_schema;
     public      $acf_schema_groups;
 
@@ -13,11 +15,7 @@ abstract class Post_Base_Class {
     public      $categories;
     public      $components;
 
-    public      $component_setups = [
-                    [
-                        'types' => ['base-component']
-                    ]
-                ];
+    public      $component_setups = [];
 
     public      $included_acf_fields;
 
@@ -35,7 +33,7 @@ abstract class Post_Base_Class {
     protected   $keep_build_data    = false;
     private     $post_constructed   = false;
 
-    public function __construct ($post_id = null, $cache_options = []) {
+    protected function __construct ($post_id = null, $cache_options = []) {
         $this->definition();
         
         if($post_id) {
@@ -232,6 +230,10 @@ abstract class Post_Base_Class {
         return true;
     }
 
+    public function register_taxonomies () {
+
+    }
+
     public function get_key_name () {
         return api_name_to_key(get_class($this));
     }
@@ -252,4 +254,5 @@ abstract class Post_Base_Class {
     there is no need to put that through the registering machine.
 */
 class Post extends Post_Base_Class {
+    public $create_post_type = false;
 }

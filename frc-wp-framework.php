@@ -17,6 +17,7 @@ if(defined("FRC_WP_FRAMEWORK_INIT"))
 require_once 'inc/classes/class-framework.php';
 require_once 'inc/classes/class-attachment.php';
 require_once 'inc/classes/class-query.php';
+require_once 'inc/classes/class-taxonomy.php';
 
 require_once 'inc/base-classes/class-base-post.php';
 require_once 'inc/base-classes/class-base-component.php';
@@ -27,7 +28,10 @@ require_once 'inc/transient-management.php';
 
 //Set the default options
 set_options([
-    'default_frc_post_class'            => 'FRC\Post',
+    'override_post_type_classes'        => [
+        'post' => 'FRC\Post',
+        'page' => 'FRC\Post'
+    ],
     'local_cache_stack_size'            => 20,
     'cache_whole_post_objects'          => true,
     'setup_basic_post_type_components'  => true,

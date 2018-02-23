@@ -8,8 +8,10 @@ class FRC {
     public $component_data_locations;
     public $component_classes;
 
-    public $custom_post_type_classes;
+    public $taxonomies;
+    public $post_types_to_taxonomies;
 
+    public $custom_post_type_classes;
     public $options_classes;
 
     public $component_root_folders;
@@ -21,10 +23,7 @@ class FRC {
 
     public function __construct () {
         add_action('init', [$this, "setup_custom_post_types"]);
-
-        if($this->options['setup_basic_post_type_components']) {
-            add_action('init', [$this, "setup_basic_post_type_components"]);
-        }
+        add_action('init', [$this, "setup_post_type_taxonomies"]);
     }
 
     static public function get_instance () {
@@ -36,20 +35,14 @@ class FRC {
 
         return $frc_framework_instance;
     }
-    
-    public function setup_basic_post_type_components () {
-        $this->register_post_type_components('post', [['types' => 'post-component']], 'Post');
-        $this->register_post_type_components('page', [['types' => 'post-component']], 'Page');
-    }
 
-    public function setup_options_pages () {
+    private function setup_options_pages () {
         foreach($this->options_classes as $class_name) {
             $reference_class = new $class_name();
 
             $options_page_proper_name = $reference_class->options['proper_name'] ?? api_class_name_to_proper($class_name);
 
             $options_page_key_name = $reference_class->options['key_name'] ?? api_name_to_key($class_name);
-
 
             $default_args = array_replace_recursive([
                 'page_title' 	=> $options_page_proper_name,
@@ -63,74 +56,63 @@ class FRC {
         }
     }
 
+    public function setup_post_type_taxonomies () {
+        if(!empty($this->taxonomies) && is_array($this->taxonomies)) {
+            foreach ($this->taxonomies as $taxonomy_name => $taxonomy) {
+
+                $post_types = $this->post_types_to_taxonomies[$taxonomy_name];
+
+                if (empty($post_types))
+                    continue;
+
+                register_taxonomy($taxonomy_name, $post_types, $taxonomy);
+            }
+        }
+    }
+
     public function setup_custom_post_types () {
         if(empty($this->custom_post_type_classes))
             return;
 
-        foreach($this->custom_post_type_classes as $post_type_key_name => $class_name) {
+        foreach($this->get_post_type_classes() as $post_type_key_name => $class_name) {
             $reference_class = new $class_name();
 
             $post_type_proper_name = $reference_class->options['proper_name'] ?? api_class_name_to_proper($class_name);
-    
-            $post_type_key_name = $reference_class->options['key_name'] ?? $post_type_key_name;
-    
-            $default_register_post_type_args = [
-                'labels' => [
-                    'name'              => $post_type_proper_name,
-                    'singular_name'     => $post_type_proper_name,
-                    'menu_name'         => $post_type_proper_name
-                ],
-                'description'           => "Automaticaly generated post type",
-                'public'                => true,
-                'publicly_queryable'    => true,
-                'show_ui'               => true,
-                'show_in_menu'          => true,
-                'query_var'             => true,
-                'rewrite'               => array( 'slug' => $post_type_key_name ),
-                'capability_type'       => 'post',
-                'has_archive'           => true,
-                'hierarchical'          => false,
-                'menu_position'         => null,
-                'supports'              => array( 'title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments' )
-            ];
-    
-            $options_args = $reference_class->args ?? [];
-    
-            $register_post_type_args = array_replace_recursive($default_register_post_type_args, $options_args);
-    
-            register_post_type($post_type_key_name, $register_post_type_args);
-    
-            $options_taxonomies = $reference_class->taxonomies;
-    
-            //Construct the taxonomies
-            if(isset($options_taxonomies) && is_array($options_taxonomies)) {
-                foreach($options_taxonomies as $taxonomy_key => $taxonomy) {
-                    $taxonomy_name = $taxonomy;
-    
-                    if(is_array($taxonomy)) {
-                        $taxonomy_name = $taxonomy_key;
-                    }
-    
-                    $default_custom_taxonomy_args = [
-                        'labels' => [
-                            'name'          => ucfirst($taxonomy_name),
-                            'singular_name' => ucfirst($taxonomy_name)
-                        ],
-                        'show_ui'           => true,
-                        'show_admin_column' => true,
-                        'query_var'         => true,
-                        'rewrite'           => array( 'slug' => $taxonomy_name ),
-                    ];
-    
-                    $taxonomy_args = $default_custom_taxonomy_args;
-    
-                    if(is_array($taxonomy))
-                        $taxonomy_args = array_replace_recursive($default_custom_taxonomy_args, $taxonomy);
-    
-                    register_taxonomy($taxonomy_name, [$post_type_key_name], $taxonomy_args);
-                }
+            $post_type_key_name = $override_post_type_classes[$class_name] ?? $reference_class->options['key_name'] ?? $post_type_key_name;
+
+            if($reference_class->create_post_type) {
+
+                $default_register_post_type_args = [
+                    'labels' => [
+                        'name' => $post_type_proper_name,
+                        'singular_name' => $post_type_proper_name,
+                        'menu_name' => $post_type_proper_name
+                    ],
+                    'description' => "Automatically generated post type",
+                    'public' => true,
+                    'publicly_queryable' => true,
+                    'show_ui' => true,
+                    'show_in_menu' => true,
+                    'query_var' => true,
+                    'rewrite' => array('slug' => $post_type_key_name),
+                    'capability_type' => 'post',
+                    'has_archive' => true,
+                    'hierarchical' => false,
+                    'menu_position' => null,
+                    'supports' => array('title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments')
+                ];
+
+                $options_args = $reference_class->args ?? [];
+
+                $register_post_type_args = array_replace_recursive($default_register_post_type_args, $options_args);
+
+                register_post_type($post_type_key_name, $register_post_type_args);
             }
-    
+
+            if(isset($reference_class->taxonomies) && is_array($reference_class->taxonomies) && !empty($reference_class->taxonomies)) {
+                $this->add_post_type_taxonomies_to_lists($reference_class->taxonomies, $post_type_key_name);
+            }
+
             if(function_exists('acf_add_local_field_group')) {
                 $options_acf_groups = $reference_class->acf_schema_groups ?? false;
     
@@ -170,7 +152,22 @@ class FRC {
         }
     }
 
-    public function register_post_type_components ($post_type, $component_setups, $proper_name) {
+    private function add_post_type_taxonomies_to_lists ($taxonomies, $post_type_key_name) {
+
+        //Setup taxonomy relationships
+        if(is_array($taxonomies) && !empty($taxonomies)) {
+            foreach ($taxonomies as $taxonomy) {
+                if(!isset($this->taxonomies[$taxonomy]))
+                    continue;
+
+
+                $this->post_types_to_taxonomies[$taxonomy][] = $post_type_key_name;
+            }
+        }
+
+    }
+
+    private function register_post_type_components ($post_type, $component_setups, $proper_name) {
         if(empty($component_setups))
             return;
 
@@ -237,6 +234,13 @@ class FRC {
 
             $current_index++;
         }
+    }
+
+    public function get_post_type_classes () {
+        $override_post_type_classes = array_flip($this->options['override_post_type_classes']);
+        $post_type_classes = array_flip($this->custom_post_type_classes);
+
+        return array_flip(array_replace($post_type_classes, $override_post_type_classes));
     }
 
     public function add_to_local_cache_stack ($post) {

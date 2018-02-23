@@ -25,7 +25,7 @@ function add_to_local_cache_stack ($post) {
 }
 
 function set_local_cache_stack ($posts) {
-    FRC::get_instance()->set_local_cache_stack($post);
+    FRC::get_instance()->set_local_cache_stack($posts);
 }
 
 function get_post ($post_id = null, $get_fresh = false) {
@@ -56,12 +56,12 @@ function get_post ($post_id = null, $get_fresh = false) {
 
     //Save the class of the post so we don't have to figure it out every time
     if(FRC::use_cache() || ($post_class_to_use = api_get_post_class_type($post_id)) === false) {
-        $children = FRC::get_instance()->custom_post_type_classes;
+        $children = FRC::get_instance()->get_post_type_classes();
 
         if(isset($children[get_post_type($post_id)])) {
             $post_class_to_use = $children[get_post_type($post_id)];
         } else {
-            $post_class_to_use = $frc_options['default_frc_post_class'] ?? "FRC\Post";
+            $post_class_to_use = $frc_options['default_post_class'] ?? "FRC\Post";
         }
 
         if(FRC::use_cache()) {
@@ -102,6 +102,8 @@ function render($file, $data = [], $extract = false) {
 function register_custom_post_types_folder ($custom_post_type_folder) {
     $frc_framework = FRC::get_instance();
 
+    $custom_post_type_folder = get_stylesheet_directory() . '/' . $custom_post_type_folder;
+
     if(!file_exists($custom_post_type_folder)) {
         trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_folder . ").", E_USER_ERROR);
     }
@@ -129,6 +131,8 @@ function register_custom_post_types_folder ($custom_post_type_folder) {
 
 function register_components_folder ($components_directory) {
     $frc_framework = FRC::get_instance();
+
+    $components_directory = get_stylesheet_directory() . '/' . $components_directory;
 
     if(!file_exists($components_directory)) {
         trigger_error("Trying to register a components folder, but it doesn't exist (" . $components_directory . ").", E_USER_ERROR);
@@ -183,6 +187,29 @@ function register_options_folder ($options_directory) {
         } else {
             $frc_framework->register_options_class($class_name);
         }
+    }
+}
+
+function create_taxonomy ($taxonomy_name, $args = [], $post_types = false) {
+    $frc_framework = FRC::get_instance();
+
+    $default_custom_taxonomy_args = [
+        'labels' => [
+            'name'          => ucfirst($taxonomy_name),
+            'singular_name' => ucfirst($taxonomy_name)
+        ],
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => $taxonomy_name ),
+    ];
+
+    $taxonomy_args =  array_replace_recursive($default_custom_taxonomy_args, $args);
+
+    if(!empty($post_types)) {
+        register_taxonomy($taxonomy_name, $taxonomy_args, $post_types);
+    } else {
+        $frc_framework->taxonomies[$taxonomy_name] = $taxonomy_args;
     }
 }
 
