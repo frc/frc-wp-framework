@@ -5,9 +5,6 @@ class Component_Base_Class {
     public $acf_schema              = [];
     public $acf_schema_groups       = [];
 
-    public $child_components        = [];
-    public $component_types         = ["base-component"];
-
     public $component_data          = [];
     
     public $component_view_file     = "";
@@ -36,7 +33,7 @@ class Component_Base_Class {
         
         $data['component'] = $this;
 
-        return $data;
+        return (object) $data;
     }
 
     public function render () {
@@ -67,6 +64,6 @@ class Component_Base_Class {
     }
 
     public function get_label () {
-        return api_class_name_to_proper(get_class($this));
+        return api_name_to_proper(get_class($this));
     }
 }

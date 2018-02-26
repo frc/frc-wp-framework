@@ -16,11 +16,12 @@ if(defined("FRC_WP_FRAMEWORK_INIT"))
 
 require_once 'inc/classes/class-framework.php';
 require_once 'inc/classes/class-attachment.php';
+require_once 'inc/classes/class-term.php';
 require_once 'inc/classes/class-query.php';
-require_once 'inc/classes/class-taxonomy.php';
 
 require_once 'inc/base-classes/class-base-post.php';
 require_once 'inc/base-classes/class-base-component.php';
+require_once 'inc/base-classes/class-base-taxonomy.php';
 
 require_once 'inc/internal-helpers.php';
 require_once 'inc/functions.php';

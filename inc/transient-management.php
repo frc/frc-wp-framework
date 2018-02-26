@@ -22,6 +22,8 @@ function taxonomy_transient_deletion ($term_id, $taxonomy) {
         ]
     ]);
 
+    api_delete_transients_in_group("term_" . $term_id);
+
     foreach($posts as $post) {
         post_transient_deletion($post->ID);
     }

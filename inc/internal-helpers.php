@@ -49,8 +49,12 @@ function api_set_post_class_type ($post_id, $class_type) {
     return true;
 }
 
+function get_taxonomy_class_type ($taxonomy) {
+    
+}
+
 function api_remove_post_class_type($post_id) {
-    $class_types = get_transient('_frc_post_class_types');
+    $class_types = (!empty(get_transient('_frc_post_class_types'))) ? get_transient('_frc_post_class_types') : [];
 
     unset($class_types[$post_id]);
 
@@ -66,7 +70,7 @@ function api_name_to_key ($name) {
     return strtolower($name);
 } 
 
-function api_class_name_to_proper ($class_name) {
+function api_name_to_proper ($class_name) {
     if(is_object($class_name))
         $class_name = get_class($class_name);
 

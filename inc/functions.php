@@ -92,6 +92,21 @@ function get_post ($post_id = null, $get_fresh = false) {
     return $post;
 }
 
+function get_term ($term_id) {
+    $transient_key = "_frc_taxonomy_whole_object_" . $term_id;
+
+    if((FRC::use_cache() && ($term_object = get_transient($transient_key)) === false) || !FRC::use_cache()) {
+        $term_object = new Term($term_id);
+
+        if(FRC::use_cache()) {
+            set_transient($transient_key, $term_object);
+            api_add_transient_to_group_list("term_" . $term_id, $transient_key);
+        }
+    }
+
+    return $term_object;
+}
+
 function render($file, $data = [], $extract = false) {
     if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
         $file .= '.php';
@@ -99,27 +114,39 @@ function render($file, $data = [], $extract = false) {
     return api_render(get_stylesheet_directory() . '/' . ltrim($file, '/'), $data, $extract);
 }
 
-function register_custom_post_types_folder ($custom_post_type_folder) {
-    $frc_framework = FRC::get_instance();
-
-    $custom_post_type_folder = get_stylesheet_directory() . '/' . $custom_post_type_folder;
-
-    if(!file_exists($custom_post_type_folder)) {
-        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_folder . ").", E_USER_ERROR);
+function register_folders ($folders) {
+    if(isset($folders['post_types'])) {
+        register_custom_post_types_folder($folders['post_types']);
     }
 
-    $frc_framework->custom_post_type_root_folders[] = $custom_post_type_folder;
+    if(isset($folders['components'])) {
+        register_components_folder($folders['components']);
+    }
 
-    $custom_post_type_folder = rtrim($custom_post_type_folder, "/");
+    if(isset($folders['taxonomies'])) {
+        register_taxonomies_folder($folders['taxonomies']);
+    }
+}
 
-    $contents = array_diff(scandir($custom_post_type_folder), ['..', '.']);
+function register_custom_post_types_folder ($custom_post_type_directory) {
+    $frc_framework = FRC::get_instance();
 
-    foreach(glob($custom_post_type_folder . '/*.php') as $file) {
-        $file_info = pathinfo(basename($file));
+    $custom_post_type_directory = get_stylesheet_directory() . '/' . $custom_post_type_directory;
 
-        $class_name = $file_info['filename'];
+    if(!file_exists($custom_post_type_directory)) {
+        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_directory . ").", E_USER_ERROR);
+    }
 
-        require_once $custom_post_type_folder . '/' . basename($file);
+    $frc_framework->custom_post_type_root_folders[] = $custom_post_type_directory;
+
+    $custom_post_type_directory = rtrim($custom_post_type_directory, "/");
+
+    $contents = array_diff(scandir($custom_post_type_directory), ['..', '.']);
+
+    foreach(glob($custom_post_type_directory . '/*.php') as $file) {
+        $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
+
+        require_once $file;
 
         if(!class_exists($class_name)) {
             trigger_error("Found custom post type file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_ERROR);
@@ -164,6 +191,33 @@ function register_components_folder ($components_directory) {
     }
 }
 
+function register_taxonomies_folder ($taxonomies_directory) {
+    $frc_framework = FRC::get_instance();
+
+    $taxonomies_directory = get_stylesheet_directory() . '/' . $taxonomies_directory;
+
+    if(!file_exists($taxonomies_directory)) {
+        trigger_error("Trying to register a taxonomies folder, but it doesn't exist (" . $taxonomies_directory . ").", E_USER_ERROR);
+    }
+
+    $frc_framework->taxonomies_root_folders[] = $taxonomies_directory;
+
+    $taxonomies_directory = rtrim($taxonomies_directory, "/");
+
+    foreach(glob($taxonomies_directory . '/*.php') as $file) {
+        $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
+
+        require_once $file;
+
+        if(!class_exists($class_name)) {
+            trigger_error("Found custom taxonomy file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_ERROR);
+        } else {
+            $frc_framework->register_taxonomy_class($class_name);
+        }
+    }
+
+}
+
 function register_options_folder ($options_directory) {
     $frc_framework = FRC::get_instance();
 
@@ -201,6 +255,7 @@ function create_taxonomy ($taxonomy_name, $args = [], $post_types = false) {
         'show_ui'           => true,
         'show_admin_column' => true,
         'query_var'         => true,
+        'hierarchical'      => true,
         'rewrite'           => array( 'slug' => $taxonomy_name ),
     ];
 
@@ -213,28 +268,6 @@ function create_taxonomy ($taxonomy_name, $args = [], $post_types = false) {
     }
 }
 
-function get_components_of_types ($component_types) {
-    $frc_framework = FRC::get_instance();
-
-    $component_types = (is_string($component_types)) ? [$component_types] : $component_types;
-
-    $component_classes = $frc_framework->component_classes;
-
-    if(!$component_classes || empty($component_classes))
-        return [];
-
-    $components = [];
-    foreach($frc_framework->component_classes as $component) {
-        $reference_class = new $component();
-
-        if(!array_intersect($reference_class->get_component_types(), $component_types))
-            continue;
-
-        $components[] = $component;
-    }
-
-    return $components;
-}
 
 function register_post_type_components ($post_type, $component_setups, $proper_name) {
     return FRC::get_instance()->register_post_type_components($post_type, $component_setups, $proper_name);
