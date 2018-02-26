@@ -134,7 +134,7 @@ function register_custom_post_types_folder ($custom_post_type_directory) {
     $custom_post_type_directory = get_stylesheet_directory() . '/' . $custom_post_type_directory;
 
     if(!file_exists($custom_post_type_directory)) {
-        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_directory . ").", E_USER_ERROR);
+        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_directory . ").", E_USER_NOTICE);
     }
 
     $frc_framework->custom_post_type_root_folders[] = $custom_post_type_directory;
@@ -149,7 +149,7 @@ function register_custom_post_types_folder ($custom_post_type_directory) {
         require_once $file;
 
         if(!class_exists($class_name)) {
-            trigger_error("Found custom post type file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_ERROR);
+            trigger_error("Found custom post type file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_NOTICE);
         } else {
             $frc_framework->register_custom_post_type_class($class_name);
         }
@@ -162,7 +162,7 @@ function register_components_folder ($components_directory) {
     $components_directory = get_stylesheet_directory() . '/' . $components_directory;
 
     if(!file_exists($components_directory)) {
-        trigger_error("Trying to register a components folder, but it doesn't exist (" . $components_directory . ").", E_USER_ERROR);
+        trigger_error("Trying to register a components folder, but it doesn't exist (" . $components_directory . ").", E_USER_NOTICE);
     }
 
     $frc_framework->component_root_folders[] = $components_directory;
@@ -180,12 +180,12 @@ function register_components_folder ($components_directory) {
                 require_once $dir . '/component.php';
 
                 if(!class_exists($content)) {
-                    trigger_error("Found component directory and found all the proper files, but didn't find a class with the same name (" . $content . ").", E_USER_ERROR);
+                    trigger_error("Found component directory and found all the proper files, but didn't find a class with the same name (" . $content . ").", E_USER_NOTICE);
                 } else {
                     $frc_framework->register_component_class($content, $dir);
                 }
             } else {
-                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both component.php and view.php -files.", E_USER_ERROR);
+                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both component.php and view.php -files.", E_USER_NOTICE);
             }
         }
     }
@@ -197,7 +197,7 @@ function register_taxonomies_folder ($taxonomies_directory) {
     $taxonomies_directory = get_stylesheet_directory() . '/' . $taxonomies_directory;
 
     if(!file_exists($taxonomies_directory)) {
-        trigger_error("Trying to register a taxonomies folder, but it doesn't exist (" . $taxonomies_directory . ").", E_USER_ERROR);
+        trigger_error("Trying to register a taxonomies folder, but it doesn't exist (" . $taxonomies_directory . ").", E_USER_NOTICE);
     }
 
     $frc_framework->taxonomies_root_folders[] = $taxonomies_directory;
@@ -210,7 +210,7 @@ function register_taxonomies_folder ($taxonomies_directory) {
         require_once $file;
 
         if(!class_exists($class_name)) {
-            trigger_error("Found custom taxonomy file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_ERROR);
+            trigger_error("Found custom taxonomy file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_NOTICE);
         } else {
             $frc_framework->register_taxonomy_class($class_name);
         }
@@ -222,7 +222,7 @@ function register_options_folder ($options_directory) {
     $frc_framework = FRC::get_instance();
 
     if(!file_exists($options_directory)) {
-        trigger_error("Trying to register a options folder, but it doesn't exist (" . $options_directory . ").", E_USER_ERROR);
+        trigger_error("Trying to register a options folder, but it doesn't exist (" . $options_directory . ").", E_USER_NOTICE);
     }
 
     $options_directory = rtrim($options_directory, "/");
@@ -237,7 +237,7 @@ function register_options_folder ($options_directory) {
         require_once $options_directory . '/' . basename($file);
 
         if(!class_exists($class_name)) {
-            trigger_error("Found options file (" . $file . "), but not a class with the same name (" . $class_name . ").", E_USER_ERROR);
+            trigger_error("Found options file (" . $file . "), but not a class with the same name (" . $class_name . ").", E_USER_NOTICE);
         } else {
             $frc_framework->register_options_class($class_name);
         }
