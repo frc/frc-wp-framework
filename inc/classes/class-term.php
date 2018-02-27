@@ -5,6 +5,7 @@ namespace FRC;
 class Term {
     public $children;
     public $permalink;
+    public $acf_fields;
 
     public function __construct ($id) {
         $term = \get_term($id);
@@ -18,6 +19,10 @@ class Term {
         $this->permalink = get_term_link($id);
 
         $this->retrieve_children();
+
+        $this->acf_fields = get_fields($this->taxonomy . "_" . $id);
+
+        var_dump($this->acf_fields);
     }
 
     public function retrieve_children () {

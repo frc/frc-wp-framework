@@ -65,13 +65,13 @@ class FRC {
             $taxonomy_acf_groups = $reference_class->acf_schema_groups ?? false;
 
             if($taxonomy_acf_groups) {
-                acf_add_local_field_group(api_proof_acf_schema_groups($taxonomy_acf_groups));
+                \acf_add_local_field_group(api_proof_acf_schema_groups($taxonomy_acf_groups));
             } else if($taxonomy_acf_schema) {
                 $field_prefix = api_name_to_key($taxonomy_class) . '_taxonomy_fields';
 
                 $taxonomy_acf_schema = api_proof_acf_schema($taxonomy_acf_schema, $field_prefix);
 
-                acf_add_local_field_group(api_proof_acf_schema_groups([
+                \acf_add_local_field_group(api_proof_acf_schema_groups([
                     'title'     => api_name_to_proper($taxonomy_class) . ' Fields',
                     'fields'    => $taxonomy_acf_schema,
                     'location'  => [
@@ -139,14 +139,14 @@ class FRC {
                 if($options_acf_groups) {
                     $options_acf_groups = api_proof_acf_schema_groups($options_acf_groups);
 
-                    acf_add_local_field_group($options_acf_groups);
+                    \acf_add_local_field_group($options_acf_groups);
                 } else if ($options_acf_fields && !empty($options_acf_fields)) {
                     //Construct the acf fields
                     $field_group_key = str_replace("_", "", $post_type_key_name . '_fields');
 
                     $options_acf_fields = api_proof_acf_schema($options_acf_fields, $field_group_key);
 
-                    acf_add_local_field_group(api_proof_acf_schema_groups([
+                    \acf_add_local_field_group(api_proof_acf_schema_groups([
                         'title'     => $reference_class->options['acf_group_name'] ?? $post_type_proper_name . ' Fields',
                         'fields'    => $options_acf_fields,
                         'location' => [
@@ -233,7 +233,7 @@ class FRC {
 
         $component_field_group_args = array_replace_recursive($component_field_group_args, $component_setup['acf_group_schema'] ?? []);
 
-        acf_add_local_field_group($component_field_group_args);
+        \acf_add_local_field_group($component_field_group_args);
     }
 
     public function get_post_type_classes () {
