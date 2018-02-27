@@ -1,7 +1,7 @@
 <?php
 namespace FRC;
 
-class Component_Base_Class {
+abstract class Component_Base_Class {
     public $acf_schema              = [];
     public $acf_schema_groups       = [];
 

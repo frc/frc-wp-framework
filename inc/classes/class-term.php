@@ -18,14 +18,16 @@ class Term {
 
         $this->permalink = get_term_link($id);
 
-        $this->retrieve_children();
+        $this->children = $this->retrieve_children();
 
         $this->acf_fields = (object) get_fields($this->taxonomy . "_" . $id);
     }
 
     public function retrieve_children () {
+        $children = [];
         foreach(get_term_children($this->term_id, $this->taxonomy) as $child_term) {
-            $this->children[] = new Term($child_term);
+            $children[] = new Term($child_term);
         }
+        return $children;
     }
 }
