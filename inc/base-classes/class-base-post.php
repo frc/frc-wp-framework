@@ -16,6 +16,7 @@ abstract class Post_Base_Class {
     public      $taxonomies;
     public      $args;
     public      $included_components;
+    public      $default_components;
     public      $cache_options = [
                     'cache_whole_object'    => true,
                     'cache_acf_fields'      => true,
@@ -46,6 +47,7 @@ abstract class Post_Base_Class {
             
             //Construct the real post object
             $this->construct_post_object($post_id);
+            $this->construct_default_components();
 
             $this->init();
         }
@@ -103,6 +105,13 @@ abstract class Post_Base_Class {
         } else {
             $this->acf_fields = (object) get_fields($post_id);
         }
+    }
+
+    public function construct_default_components () {
+        if(empty($this->default_components))
+            return;
+
+
     }
 
     public function prepare_post_metadata () {

@@ -10,6 +10,7 @@ class FRC {
     public $taxonomies;
     public $taxonomy_classes;
     public $post_types_to_taxonomies;
+    public $post_type_default_components;
 
     public $custom_post_type_classes;
     public $options_classes;
@@ -27,6 +28,10 @@ class FRC {
             add_action('init', [$this, "setup_custom_taxonomies"]);
             add_action('init', [$this, "setup_post_types"]);
             add_action('init', [$this, "setup_post_type_taxonomies"]);
+
+            if(is_admin()) {
+                add_action('init', [$this, "admin_setup_default_components"]);
+            }
         }
     }
 
@@ -38,6 +43,27 @@ class FRC {
         }
 
         return $frc_framework_instance;
+    }
+
+    public function admin_setup_default_components () {
+        add_filter('acf/load_value/name=frc_components', function ($value, $post_id, $field) {
+            if(get_post_status($post_id) != 'auto-draft')
+                return $value;
+
+            $post_type = get_post_type($post_id);
+
+            if(!isset($this->post_type_default_components[$post_type])) {
+                return $value;
+            }
+
+            foreach($this->post_type_default_components[$post_type] as $component) {
+                $value[] = [
+                    'acf_fc_layout' => $component
+                ];
+            }
+
+            return $value;
+        }, 10, 3);
     }
 
     public function setup_post_type_taxonomies () {
@@ -164,8 +190,15 @@ class FRC {
                 }
 
                 //Component initializations
-                if(isset($reference_class->included_components))
+                if(isset($reference_class->included_components)) {
                     $this->register_post_type_components($post_type_key_name, $reference_class->included_components, $post_type_proper_name, $class_name);
+
+                    if(isset($reference_class->default_components) && !empty($reference_class->default_components)) {
+                        foreach($reference_class->default_components as $component) {
+                            $this->post_type_default_components[$post_type_key_name][] = api_name_to_key($component);
+                        }
+                    }
+                }
             }
         }
     }
