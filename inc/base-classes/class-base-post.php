@@ -93,7 +93,7 @@ abstract class Post_Base_Class {
         if($this->cache_options['cache_acf_fields']) {
             $transient_key = '_frc_api_post_acf_field_' . $post_id;
             if(FRC::use_cache() || ($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
-                $this->acf_fields = get_fields($post_id);
+                $this->acf_fields = (object) get_fields($post_id);
 
                 if(FRC::use_cache()) {
                     api_add_transient_to_group_list("post_" . $post_id, $transient_key);
@@ -101,7 +101,7 @@ abstract class Post_Base_Class {
                 }
             }
         } else {
-            $this->acf_fields = get_fields($post_id);
+            $this->acf_fields = (object) get_fields($post_id);
         }
     }
 
@@ -161,8 +161,6 @@ abstract class Post_Base_Class {
 
     public function get_terms ($taxonomy = false) {
         $this->terms = [];
-
-        die("haeha");
 
         if(!$taxonomy) {
             foreach (get_post_taxonomies($this->ID) as $taxonomy_slug) {

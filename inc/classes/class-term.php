@@ -20,9 +20,7 @@ class Term {
 
         $this->retrieve_children();
 
-        $this->acf_fields = get_fields($this->taxonomy . "_" . $id);
-
-        var_dump($this->acf_fields);
+        $this->acf_fields = (object) get_fields($this->taxonomy . "_" . $id);
     }
 
     public function retrieve_children () {

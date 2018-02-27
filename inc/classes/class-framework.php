@@ -23,9 +23,11 @@ class FRC {
     public $excluded_classes;
 
     public function __construct () {
-        add_action('init', [$this, "setup_custom_taxonomies"]);
-        add_action('init', [$this, "setup_post_types"]);
-        add_action('init', [$this, "setup_post_type_taxonomies"]);
+        if(function_exists("acf_add_local_field_group")) {
+            add_action('init', [$this, "setup_custom_taxonomies"]);
+            add_action('init', [$this, "setup_post_types"]);
+            add_action('init', [$this, "setup_post_type_taxonomies"]);
+        }
     }
 
     static public function get_instance () {
