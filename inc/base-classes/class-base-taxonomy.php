@@ -17,11 +17,10 @@ abstract class Taxonomy_Base_Class {
     public $acf_fields          = [];
 
     public function __construct () {
-        $this->definition();
+        $this->def();
     }
 
-    public function definition () {
-
+    public function def () {
     }
 
 

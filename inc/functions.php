@@ -252,31 +252,6 @@ function register_options_folder ($options_directory) {
     }
 }
 
-function create_taxonomy ($taxonomy_name, $args = [], $post_types = false) {
-    $frc_framework = FRC::get_instance();
-
-    $default_custom_taxonomy_args = [
-        'labels' => [
-            'name'          => ucfirst($taxonomy_name),
-            'singular_name' => ucfirst($taxonomy_name)
-        ],
-        'show_ui'           => true,
-        'show_admin_column' => true,
-        'query_var'         => true,
-        'hierarchical'      => true,
-        'rewrite'           => array( 'slug' => $taxonomy_name ),
-    ];
-
-    $taxonomy_args =  array_replace_recursive($default_custom_taxonomy_args, $args);
-
-    if(!empty($post_types)) {
-        register_taxonomy($taxonomy_name, $taxonomy_args, $post_types);
-    } else {
-        $frc_framework->taxonomies[$taxonomy_name] = $taxonomy_args;
-    }
-}
-
-
 function register_post_type_components ($post_type, $component_setups, $proper_name) {
     return FRC::get_instance()->register_post_type_components($post_type, $component_setups, $proper_name);
 }

@@ -30,7 +30,7 @@ class FRC {
             add_action('init', [$this, "setup_post_type_taxonomies"]);
 
             if(is_admin()) {
-                add_action('init', [$this, "admin_setup_default_components"]);
+                add_action('init', [$this, "admin_setup_post_type_default_components"]);
             }
         }
     }
@@ -45,7 +45,7 @@ class FRC {
         return $frc_framework_instance;
     }
 
-    public function admin_setup_default_components () {
+    public function admin_setup_post_type_default_components () {
         add_filter('acf/load_value/name=frc_components', function ($value, $post_id, $field) {
             if(get_post_status($post_id) != 'auto-draft')
                 return $value;
@@ -69,11 +69,10 @@ class FRC {
     public function setup_post_type_taxonomies () {
         if(!empty($this->taxonomies) && is_array($this->taxonomies)) {
             foreach ($this->taxonomies as $taxonomy_name => $taxonomy) {
+                if(!isset($this->post_types_to_taxonomies[$taxonomy_name]))
+                    continue;
 
                 $post_types = $this->post_types_to_taxonomies[$taxonomy_name];
-
-                if (empty($post_types))
-                    continue;
 
                 register_taxonomy($taxonomy_name, $post_types, $taxonomy);
             }
@@ -87,7 +86,27 @@ class FRC {
         foreach($this->taxonomy_classes as $taxonomy_class) {
             $reference_class = new $taxonomy_class();
 
-            create_taxonomy(api_name_to_key($taxonomy_class), $reference_class->args ?? []);
+            $taxonomy_options = $reference_class->options ?? [];
+            $taxonomy_key = $taxonomy_options['key_name'] ?? api_name_to_key($taxonomy_class);
+            $taxonomy_proper = $taxonomy_options['proper_name'] ?? api_name_to_proper($taxonomy_class);
+
+            $frc_framework = FRC::get_instance();
+
+            $default_custom_taxonomy_args = [
+                'labels' => [
+                    'name'          => $taxonomy_proper,
+                    'singular_name' => $taxonomy_proper
+                ],
+                'show_ui'           => true,
+                'show_admin_column' => true,
+                'query_var'         => true,
+                'hierarchical'      => true,
+                'rewrite'           => array( 'slug' => $taxonomy_key ),
+            ];
+
+            $taxonomy_args =  array_replace_recursive($default_custom_taxonomy_args, $reference_class->args ?? []);
+
+            $frc_framework->taxonomies[$taxonomy_key] = $taxonomy_args;
 
             $taxonomy_acf_schema = $reference_class->acf_scheme ?? false;
             $taxonomy_acf_groups = $reference_class->acf_schema_groups ?? false;
@@ -127,9 +146,11 @@ class FRC {
             $post_type_proper_name = $reference_class->options['proper_name'] ?? api_name_to_proper($class_name);
             $post_type_key_name = $reference_class->options['key_name'] ?? $post_type_key_name;
 
-            if($reference_class->custom_post_type) {
+            if(isset($reference_class->custom_post_type) && $reference_class->custom_post_type) {
 
                 $default_register_post_type_args = [
+                    'name' => $post_type_proper_name,
+                    'description' => $post_type_proper_name,
                     'labels' => [
                         'name' => $post_type_proper_name,
                         'singular_name' => $post_type_proper_name,
@@ -140,13 +161,23 @@ class FRC {
                     'publicly_queryable' => true,
                     'show_ui' => true,
                     'show_in_menu' => true,
+                    'show_in_admin_bar' => true,
+                    'show_in_nav_menus' => true,
                     'query_var' => true,
                     'rewrite' => array('slug' => $post_type_key_name),
                     'capability_type' => 'post',
                     'has_archive' => true,
                     'hierarchical' => false,
-                    'menu_position' => null,
-                    'supports' => array('title', 'editor', 'author', 'thumbnail', 'excerpt', 'comments')
+                    'menu_position' => 5,
+                    'supports' => [
+                        'title',
+                        'editor',
+                        'author',
+                        'thumbnail',
+                        'excerpt',
+                        'comments',
+                        'page-attributes'
+                    ]
                 ];
 
                 $options_args = $reference_class->args ?? [];
@@ -208,6 +239,9 @@ class FRC {
 
         if(is_array($taxonomies) && !empty($taxonomies)) {
             foreach ($taxonomies as $taxonomy) {
+
+                $taxonomy = strtolower($taxonomy);
+
                 if(!isset($this->taxonomies[$taxonomy]))
                     continue;
 
@@ -231,6 +265,10 @@ class FRC {
 
             $component_reference_class = new $component();
 
+            $component_options = $component_reference_class->options ?? [];
+
+            $component_proper_name = $component_options['proper_name'] ?? api_name_to_key($component);
+
             $component_key = md5('group_' . $current_index . '_' . api_name_to_key($component));
 
             $component_setup_list['components'][api_name_to_key($component)] = $component;
@@ -238,7 +276,7 @@ class FRC {
             $component_acf_fields[$component_key] = [
                 'key'        => $component_key,
                 'name'       => api_name_to_key($component),
-                'label'      => $component_reference_class->proper_name ?? api_name_to_proper($component),
+                'label'      => $component_proper_name ?? api_name_to_proper($component),
                 'sub_fields' => $component_reference_class->acf_schema
             ];
 

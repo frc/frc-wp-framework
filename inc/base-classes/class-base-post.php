@@ -38,7 +38,7 @@ abstract class Post_Base_Class {
     private     $prepared_components;
 
     public function __construct ($post_id = null, $cache_options = []) {
-        $this->definition();
+        $this->def();
         
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
@@ -221,7 +221,7 @@ abstract class Post_Base_Class {
     protected function init () {
     }
 
-    protected function definition () {
+    protected function def () {
     }
 
     protected function saved () {

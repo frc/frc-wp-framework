@@ -9,9 +9,10 @@ abstract class Component_Base_Class {
     
     public $component_view_file     = "";
     public $component_path          = "";
+    public $options                 = [];
 
     public function __construct () {
-        $this->definition();
+        $this->def();
 
         $this->set_component_path();
     }
@@ -22,7 +23,7 @@ abstract class Component_Base_Class {
         $this->init();
     }
 
-    public function definition () {
+    public function def () {
     }
 
     public function init () {
