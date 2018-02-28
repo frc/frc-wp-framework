@@ -2,14 +2,23 @@
 namespace FRC;
 
 abstract class Component_Base_Class {
+    /**
+     * Options that can be overridden in the child post class
+     */
     public $acf_schema              = [];
     public $acf_schema_groups       = [];
-
-    public $component_data          = [];
-    
-    public $component_view_file     = "";
-    public $component_path          = "";
     public $options                 = [];
+
+    /**
+     * Fields that contain data
+     */
+    public $acf_fields          = [];
+
+    /**
+     * Internal data for the component functionality
+     */
+    protected $component_view_file     = "";
+    protected $component_path          = "";
 
     public function __construct () {
         $this->def();
@@ -18,15 +27,9 @@ abstract class Component_Base_Class {
     }
 
     public function prepare ($data) {
-        $this->component_data = $data;
+        $this->acf_fields = $data;
         
         $this->init();
-    }
-
-    public function def () {
-    }
-
-    public function init () {
     }
 
     public function prepare_data ($data) {
@@ -43,9 +46,7 @@ abstract class Component_Base_Class {
             return;
         }
 
-        $component_data = $this->component_data;
-
-        $render_data = $this->prepare_data($component_data);
+        $render_data = $this->prepare_data($this->acf_fields);
 
         return api_render($this->component_view_file, $render_data);
     }
@@ -67,4 +68,11 @@ abstract class Component_Base_Class {
     public function get_label () {
         return api_name_to_proper(get_class($this));
     }
+
+    /**
+     * Just some methods that are called at different times of the program.
+     */
+    protected function def () {}
+
+    protected function init () {}
 }

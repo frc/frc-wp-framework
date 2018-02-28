@@ -87,10 +87,10 @@ class FRC {
             $reference_class = new $taxonomy_class();
 
             $taxonomy_options = $reference_class->options ?? [];
-            $taxonomy_key = $taxonomy_options['key_name'] ?? api_name_to_key($taxonomy_class);
-            $taxonomy_proper = $taxonomy_options['proper_name'] ?? api_name_to_proper($taxonomy_class);
+            $taxonomy_key     = $taxonomy_options['key_name'] ?? api_name_to_key($taxonomy_class);
+            $taxonomy_proper  = $taxonomy_options['proper_name'] ?? api_name_to_proper($taxonomy_class);
 
-            $frc_framework = FRC::get_instance();
+            $frc_framework    = FRC::get_instance();
 
             $default_custom_taxonomy_args = [
                 'labels' => [
@@ -101,7 +101,9 @@ class FRC {
                 'show_admin_column' => true,
                 'query_var'         => true,
                 'hierarchical'      => true,
-                'rewrite'           => array( 'slug' => $taxonomy_key ),
+                'rewrite'           => [
+                    'slug' => $taxonomy_key
+                ]
             ];
 
             $taxonomy_args =  array_replace_recursive($default_custom_taxonomy_args, $reference_class->args ?? []);
@@ -143,8 +145,11 @@ class FRC {
 
             $reference_class = new $class_name();
 
-            $post_type_proper_name = $reference_class->options['proper_name'] ?? api_name_to_proper($class_name);
-            $post_type_key_name = $reference_class->options['key_name'] ?? $post_type_key_name;
+            $post_type_options = $reference_class->options ?? [];
+
+            $post_type_proper_name  = $post_type_options['proper_name'] ?? api_name_to_proper($class_name);
+            $post_type_key_name     = $post_type_options['key_name']    ?? $post_type_key_name;
+            $post_type_description  = $post_type_options['description'] ?? 'Automatically generated post type';
 
             if(isset($reference_class->custom_post_type) && $reference_class->custom_post_type) {
 
@@ -156,7 +161,7 @@ class FRC {
                         'singular_name' => $post_type_proper_name,
                         'menu_name' => $post_type_proper_name
                     ],
-                    'description' => "Automatically generated post type",
+                    'description' => $post_type_description,
                     'public' => true,
                     'publicly_queryable' => true,
                     'show_ui' => true,
@@ -208,12 +213,12 @@ class FRC {
                     \acf_add_local_field_group(api_proof_acf_schema_groups([
                         'title'     => $reference_class->options['acf_group_name'] ?? $post_type_proper_name . ' Fields',
                         'fields'    => $options_acf_fields,
-                        'location' => [
+                        'location'  => [
                             [
                                 [
-                                    'param' => 'post_type',
-                                    'operator' => '==',
-                                    'value' => $post_type_key_name,
+                                    'param'     => 'post_type',
+                                    'operator'  => '==',
+                                    'value'     => $post_type_key_name,
                                 ]
                             ]
                         ]
@@ -265,11 +270,9 @@ class FRC {
 
             $component_reference_class = new $component();
 
-            $component_options = $component_reference_class->options ?? [];
-
-            $component_proper_name = $component_options['proper_name'] ?? api_name_to_key($component);
-
-            $component_key = md5('group_' . $current_index . '_' . api_name_to_key($component));
+            $component_options      = $component_reference_class->options ?? [];
+            $component_proper_name  = $component_options['proper_name'] ?? api_name_to_key($component);
+            $component_key          = md5('group_' . $current_index . '_' . api_name_to_key($component));
 
             $component_setup_list['components'][api_name_to_key($component)] = $component;
 
@@ -284,8 +287,8 @@ class FRC {
         }
 
         $component_field_group_args = api_proof_acf_schema_groups([
-            'title'     => $proper_name . ' Components',
-            'fields'    => [
+            'title'  => $proper_name . ' Components',
+            'fields' => [
                 [
                     'label'     => 'Components',
                     'name'      => 'frc_components',
@@ -296,9 +299,9 @@ class FRC {
             'location' => [
                 [
                     [
-                        'param' => 'post_type',
-                        'operator' => '==',
-                        'value' => $post_type,
+                        'param'     => 'post_type',
+                        'operator'  => '==',
+                        'value'     => $post_type,
                     ]
                 ]
             ]

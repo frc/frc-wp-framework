@@ -20,8 +20,8 @@ abstract class Taxonomy_Base_Class {
         $this->def();
     }
 
-    public function def () {
-    }
-
-
+    /**
+     * Just some methods that are called at different times of the program.
+     */
+    protected function def () {}
 }

@@ -35,7 +35,6 @@ abstract class Post_Base_Class {
      */
     public      $served_from_cache  = false;
     protected   $keep_build_data    = false;
-    private     $prepared_components;
 
     public function __construct ($post_id = null, $cache_options = []) {
         $this->def();
@@ -217,15 +216,11 @@ abstract class Post_Base_Class {
     /**
      * Just some methods that are called at different times of the program.
      */
+    protected function init () {}
 
-    protected function init () {
-    }
+    protected function def () {}
 
-    protected function def () {
-    }
-
-    protected function saved () {
-    }
+    protected function saved () {}
 }
 
 /*
