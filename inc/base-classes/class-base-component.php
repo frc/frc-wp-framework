@@ -42,12 +42,16 @@ abstract class Component_Base_Class {
     }
 
     public function render () {
+        global $frc_current_component_render_path;
+
         if(empty($this->component_view_file)) {
             trigger_error("Trying to render a component, but the component view file (" . $this->component_view_file . ") is empty.", E_USER_ERROR);
             return;
         }
 
         $render_data = $this->prepare_data($this->acf_fields);
+
+        $frc_current_component_render_path = $this->component_path;
 
         return api_render($this->component_view_file, $render_data);
     }

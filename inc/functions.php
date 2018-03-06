@@ -30,18 +30,18 @@ function set_local_cache_stack ($posts) {
 
 function get_post ($post_id = null, $get_fresh = false) {
 
+    if(is_object($post_id) && $post_id instanceof \WP_Post) {
+        $post_id = $post_id->ID;
+    } else if(empty($post_id) && isset($GLOBALS['post'])) {
+        $post_id = $GLOBALS['post']->ID;
+    }
+
     if(($post = get_from_local_cache_stack($post_id)) !== false) {
         $post->remove_unused_post_data();
         return $post;
     }
 
     $frc_options = get_options();
-
-    if(is_object($post_id) && $post_id instanceof \WP_Post) {
-        $post_id = $post_id->ID;
-    } else if(empty($post_id) && isset($GLOBALS['post'])) {
-        $post_id = $GLOBALS['post']->ID;
-    }
 
     $whole_object_transient_key = "_frc_post_whole_object_" . $post_id;
     if(FRC::use_cache() && $frc_options['cache_whole_post_objects'] && !$get_fresh) {
@@ -111,6 +111,15 @@ function render($file, $data = [], $extract = false) {
         $file .= '.php';
 
     return api_render(get_stylesheet_directory() . '/' . ltrim($file, '/'), $data, $extract);
+}
+
+function comp_render ($file, $data = [], $extract = false) {
+    global $frc_current_component_render_path;
+
+    if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
+        $file .= '.php';
+
+    return api_render($frc_current_component_render_path . '/' . ltrim($file, '/'), $data, $extract);
 }
 
 function register_folders ($folders) {

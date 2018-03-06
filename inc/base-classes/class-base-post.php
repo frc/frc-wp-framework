@@ -85,7 +85,6 @@ abstract class Post_Base_Class {
         }
 
         $this->acf_fields       = $transient_data['acf_fields'];
-        $this->post_permalink   = get_the_permalink($this->ID);
         $this->attachments      = get_attached_media('', $this->ID);
         $this->meta_data        = $this->prepare_post_metadata($this->ID);
     }
@@ -160,6 +159,10 @@ abstract class Post_Base_Class {
         return $components;
     }
 
+    public function get_permalink () {
+        return get_the_permalink($this->ID);
+    }
+
     public function get_taxonomies () {
         return get_post_taxonomies($this->ID);
     }
@@ -169,7 +172,7 @@ abstract class Post_Base_Class {
     }
 
     public function get_terms ($taxonomy = false) {
-        $this->terms = [];
+        $terms = [];
 
         if(!$taxonomy) {
             foreach (get_post_taxonomies($this->ID) as $taxonomy_slug) {
@@ -182,6 +185,7 @@ abstract class Post_Base_Class {
                $terms[] = get_term($term_data->term_id);
             }
         }
+
         return $terms;
     }
 
