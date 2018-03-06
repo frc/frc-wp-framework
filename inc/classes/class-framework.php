@@ -31,6 +31,8 @@ class FRC {
 
             if(is_admin()) {
                 add_action('init', [$this, "admin_setup_post_type_default_components"]);
+                add_action('save_post', [$this, "admin_save_post"]);
+                add_action('save_post', [$this, "admin_save_post_components"]);
             }
         }
     }
@@ -64,6 +66,25 @@ class FRC {
 
             return $value;
         }, 10, 3);
+    }
+
+    public function admin_save_post ($post_id) {
+        get_post($post_id)->save();
+    }
+
+    function admin_save_post_components ($post_id) {
+        $components = get_post($post_id)->get_components();
+
+        if(empty($components))
+           return;
+
+        foreach($components as $component) {
+            $component->pre_save();
+        }
+
+        foreach($components as $component) {
+            $component->save();
+        }
     }
 
     public function setup_post_type_taxonomies () {
@@ -270,18 +291,19 @@ class FRC {
 
             $component_reference_class = new $component();
 
+            $component_args         = $component_reference_class->args ?? [];
             $component_options      = $component_reference_class->options ?? [];
-            $component_proper_name  = $component_options['proper_name'] ?? api_name_to_key($component);
+            $component_proper_name  = $component_options['proper_name'] ?? api_name_to_proper($component);
             $component_key          = md5('group_' . $current_index . '_' . api_name_to_key($component));
 
             $component_setup_list['components'][api_name_to_key($component)] = $component;
 
-            $component_acf_fields[$component_key] = [
+            $component_acf_fields[$component_key] = array_replace_recursive([
                 'key'        => $component_key,
                 'name'       => api_name_to_key($component),
-                'label'      => $component_proper_name ?? api_name_to_proper($component),
+                'label'      => $component_proper_name,
                 'sub_fields' => $component_reference_class->acf_schema
-            ];
+            ], $component_args);
 
             $current_index++;
         }
@@ -296,6 +318,7 @@ class FRC {
                     'layouts'   => $component_acf_fields
                 ]
             ],
+            'style' => 'seamless',
             'location' => [
                 [
                     [

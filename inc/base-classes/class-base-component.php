@@ -13,6 +13,7 @@ abstract class Component_Base_Class {
      * Fields that contain data
      */
     public $acf_fields          = [];
+    public $parent_post_id      = null;
 
     /**
      * Internal data for the component functionality
@@ -27,15 +28,15 @@ abstract class Component_Base_Class {
     }
 
     public function prepare ($data) {
-        $this->acf_fields = $data;
+        $this->acf_fields = (object) $data;
         
         $this->init();
     }
 
     public function prepare_data ($data) {
-        unset($data['acf_fc_layout']);
+        unset($data->acf_fc_layout);
         
-        $data['component'] = $this;
+        $data->component = $this;
 
         return (object) $data;
     }
@@ -69,10 +70,22 @@ abstract class Component_Base_Class {
         return api_name_to_proper(get_class($this));
     }
 
+    public function pre_save () {
+        $this->pre_saved();
+    }
+
+    public function save () {
+        $this->saved();
+    }
+
     /**
      * Just some methods that are called at different times of the program.
      */
+    protected function init () {}
+
     protected function def () {}
 
-    protected function init () {}
+    protected function saved () {}
+
+    protected function pre_saved() {}
 }

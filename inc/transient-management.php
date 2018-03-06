@@ -22,13 +22,20 @@ function taxonomy_transient_deletion ($term_id, $taxonomy) {
         ]
     ]);
 
-    api_delete_transients_in_group("term_" . $term_id);
+    api_delete_transients_in_group("terms");
 
     foreach($posts as $post) {
         post_transient_deletion($post->ID);
     }
 }
 
+
 //Let's also make sure that when the categories are saved, the posts transients
 //that have that category, also gets deleted.
-add_action('edited_terms', 'FRC\taxonomy_transient_deletion', 10, 2);
+add_action('edited_terms', function ($term_id, $taxonomy) {
+    taxonomy_transient_deletion($term_id, $taxonomy);
+}, 10, 2);
+
+add_action('created_term', function ($term_id, $tt_id, $taxonomy) {
+    taxonomy_transient_deletion($term_id, $taxonomy);
+}, 10, 3);

@@ -44,7 +44,6 @@ function get_post ($post_id = null, $get_fresh = false) {
     }
 
     $whole_object_transient_key = "_frc_post_whole_object_" . $post_id;
-
     if(FRC::use_cache() && $frc_options['cache_whole_post_objects'] && !$get_fresh) {
         if(($post = get_transient($whole_object_transient_key)) !== false) {
             $post->remove_unused_post_data();
@@ -94,13 +93,13 @@ function get_post ($post_id = null, $get_fresh = false) {
 
 function get_term ($term_id) {
     $transient_key = "_frc_taxonomy_whole_object_" . $term_id;
-
     if((FRC::use_cache() && ($term_object = get_transient($transient_key)) === false) || !FRC::use_cache()) {
         $term_object = new Term($term_id);
 
         if(FRC::use_cache()) {
             set_transient($transient_key, $term_object);
             api_add_transient_to_group_list("term_" . $term_id, $transient_key);
+            api_add_transient_to_group_list("terms", $transient_key);
         }
     }
 

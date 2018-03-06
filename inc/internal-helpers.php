@@ -2,16 +2,16 @@
 namespace FRC;
 
 function api_get_transient_group_list ($transient_group) {
-    $query_list = get_transient("_frc_group_" . $transient_group);
+    $query_list = get_option("_frc_transient_group_" . $transient_group);
 
-    if(empty($query_list) || is_string($query_list))
+    if(empty($query_list))
         return [];
 
     return $query_list;
 }
 
 function api_set_transient_group_list ($transient_group, $list) {
-    set_transient("_frc_group_" . $transient_group, $list);
+    update_option("_frc_transient_group_" . $transient_group, $list);
 }
 
 function api_add_transient_to_group_list ($transient_group, $transient) {
@@ -23,8 +23,10 @@ function api_add_transient_to_group_list ($transient_group, $transient) {
 function api_delete_transients_in_group ($transient_group) {
     $list = api_get_transient_group_list($transient_group);
 
-    foreach($list as $transient) {
-        delete_transient($transient);
+    if(!empty($list)) {
+        foreach ($list as $transient) {
+            delete_transient($transient);
+        }
     }
 
     api_set_transient_group_list($transient_group, []);

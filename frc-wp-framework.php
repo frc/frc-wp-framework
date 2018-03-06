@@ -36,7 +36,7 @@ set_options([
     'local_cache_stack_size'            => 20,
     'cache_whole_post_objects'          => true,
     'setup_basic_post_type_components'  => true,
-    'use_caching'                       => false
+    'use_caching'                       => true
 ]);
 
 define("FRC_WP_FRAMEWORK_INIT", true);

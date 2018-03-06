@@ -23,5 +23,9 @@ abstract class Taxonomy_Base_Class {
     /**
      * Just some methods that are called at different times of the program.
      */
+    protected function init () {}
+
     protected function def () {}
+
+    protected function saved () {}
 }

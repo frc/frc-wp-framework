@@ -129,8 +129,8 @@ abstract class Post_Base_Class {
         if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
-            if(isset($this->acf_fields['frc_components'])) {
-                foreach ($this->acf_fields['frc_components'] as $frc_component_data) {
+            if(isset($this->acf_fields->frc_components)) {
+                foreach ($this->acf_fields->frc_components as $frc_component_data) {
                     $component_class = false;
 
                     foreach ($this->get_included_components() as $incl_component) {
@@ -144,6 +144,7 @@ abstract class Post_Base_Class {
                         continue;
 
                     $new_component = new $component_class();
+                    $new_component->parent_post_id = $this->ID;
                     $new_component->prepare($frc_component_data);
 
                     $components[] = $new_component;
@@ -192,25 +193,12 @@ abstract class Post_Base_Class {
         return Attachment::from_post_thumbnail($this->ID);
     }
 
-    public function save () {
-        if(!$this->post_constructed)
-            return false;
-
-        wp_update_post($this);
-
-        foreach($this->acf_fields as $field_key => $field_value) {
-            update_field($field_key, $field_value, $this->ID);
-        }
-
-        api_delete_transients_in_group("post_" . $this->ID);
-
-        $this->saved();
-
-        return true;
-    }
-
     public function get_key_name () {
         return api_name_to_key(get_class($this));
+    }
+
+    public function save () {
+        $this->saved();
     }
 
     /**
