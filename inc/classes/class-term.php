@@ -23,6 +23,10 @@ class Term {
         $this->acf_fields = (object) get_fields($this->taxonomy . "_" . $id);
     }
 
+    public function get_permalink () {
+        return get_term_link($this->term_id);
+    }
+
     public function retrieve_children () {
         $children = [];
         foreach(get_term_children($this->term_id, $this->taxonomy) as $child_term) {

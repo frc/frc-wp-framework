@@ -163,6 +163,10 @@ abstract class Post_Base_Class {
         return get_the_permalink($this->ID);
     }
 
+    public function get_archive_link () {
+        return get_post_type_archive_link($this->post_type);
+    }
+
     public function get_taxonomies () {
         return get_post_taxonomies($this->ID);
     }

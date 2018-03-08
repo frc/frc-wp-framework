@@ -19,6 +19,7 @@ class Attachment {
     public $extension;
 
     public $url;
+    public $size_urls;
     public $filesize = false;
 
     public $url_prefix;
@@ -61,9 +62,11 @@ class Attachment {
 
         $this->url_prefix = dirname(wp_get_attachment_url($this->id)) . '/';
 
-        $this->src    = $this->url_prefix . basename($this->meta_data->file);
-        $this->sizes  = $this->gather_sizes();
-        $this->srcset = $this->gather_srcset($this->id);
+        if(wp_attachment_is_image($this->id)) {
+            $this->src = $this->url_prefix . basename($this->meta_data->file);
+            $this->sizes = $this->gather_sizes();
+            $this->srcset = $this->gather_srcset($this->id);
+        }
     }
 
     public function gather_filesize () {
@@ -92,8 +95,12 @@ class Attachment {
         $sizes['full'] = [
             'width'  => $this->meta_data->width,
             'height' => $this->meta_data->height,
-            'file'   => $this->meta_data->file
+            'file'   => $url_prefix . basename($this->meta_data->file)
         ];
+
+        $this->size_urls = (object) array_map(function ($size) use ($url_prefix) {
+            return $size['file'];
+        }, $sizes);
 
         return $sizes;
     }

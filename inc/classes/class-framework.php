@@ -191,8 +191,9 @@ class FRC {
                     'show_in_nav_menus' => true,
                     'query_var' => true,
                     'rewrite' => array('slug' => $post_type_key_name),
-                    'capability_type' => 'post',
+                    'capability_type' => 'page',
                     'has_archive' => true,
+                    'can_export' => true,
                     'hierarchical' => false,
                     'menu_position' => 5,
                     'supports' => [
