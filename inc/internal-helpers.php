@@ -23,7 +23,7 @@ function api_add_transient_to_group_list ($transient_group, $transient) {
 function api_delete_transients_in_group ($transient_group) {
     $list = api_get_transient_group_list($transient_group);
 
-    if(!empty($list)) {
+    if(!empty($list) && is_array($list)) {
         foreach ($list as $transient) {
             delete_transient($transient);
         }

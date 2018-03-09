@@ -159,6 +159,19 @@ abstract class Post_Base_Class {
         return $components;
     }
 
+    public function is_attachment () {
+        return ($this->post_type == 'attachment');
+    }
+
+    public function get_s3_url () {
+        global $as3cf;
+
+        if(!isset($as3cf) || !$as3cf || !$this->is_attachment())
+            return false;
+
+        return $as3cf->get_attachment_url($this->ID);
+    }
+
     public function get_permalink () {
         return get_the_permalink($this->ID);
     }
