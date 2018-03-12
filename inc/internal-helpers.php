@@ -1,6 +1,10 @@
 <?php
 namespace FRC;
 
+function api_transient_name ($name) {
+    return $name . (function_exists("pll_current_language")) ? ' ' . pll_current_language() : '';
+}
+
 function api_get_transient_group_list ($transient_group) {
     $query_list = get_option("_frc_transient_group_" . $transient_group);
 

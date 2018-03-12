@@ -8,6 +8,7 @@ abstract class Component_Base_Class {
     public $acf_schema              = [];
     public $acf_schema_groups       = [];
     public $options                 = [];
+    public $tags                    = [];
 
     /**
      * Fields that contain data
@@ -72,6 +73,10 @@ abstract class Component_Base_Class {
 
     public function get_label () {
         return api_name_to_proper(get_class($this));
+    }
+
+    public function get_tags () {
+        return array_map('strtolower', $this->tags);
     }
 
     public function pre_save () {

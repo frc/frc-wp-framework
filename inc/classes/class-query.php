@@ -17,7 +17,7 @@ class Query extends \WP_Query {
         if(!$this->cache_results)
             return parent::get_posts();
 
-        $transient_key = "_frc_wp_query_" . md5(serialize($this->query));
+        $transient_key = api_transient_name("_frc_wp_query_" . md5(serialize($this->query)));
 
         if(!FRC::use_cache() || ($query_result = get_transient($transient_key)) === false) {
             $frc_in_wp_query = true;

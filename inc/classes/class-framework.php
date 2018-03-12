@@ -196,6 +196,7 @@ class FRC {
                     'can_export' => true,
                     'hierarchical' => false,
                     'menu_position' => 5,
+                    'show_in_rest' => true,
                     'supports' => [
                         'title',
                         'editor',

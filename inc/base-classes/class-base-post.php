@@ -119,12 +119,11 @@ abstract class Post_Base_Class {
         ];
     }
 
-    public function get_components () {
+    public function get_components ($types = []) {
         if(!defined("ACF_PRO"))
             return [];
 
         $transient_key = '_frc_api_post_components_' . $this->ID;
-
         if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
@@ -156,6 +155,51 @@ abstract class Post_Base_Class {
             }
         }
 
+        if(!empty($types)) {
+            if(is_string($types)) {
+                $types = [$types];
+            }
+
+            $types = array_map("strtolower", $types);
+
+            foreach($components as $key => $component) {
+                if(!in_array(strtolower(get_class($component)), $types)) {
+                    unset($components[$key]);
+                }
+            }
+        }
+
+        return $components;
+    }
+
+    public function get_components_except ($types = []) {
+        if(empty($types) || !is_array($types))
+            return [];
+
+        $types = array_map("strtolower", $types);
+
+        $components = $this->get_components();
+
+        foreach($components as $key => $component) {
+            if(in_array(strtolower(get_class($component)), $types)) {
+                unset($components[$key]);
+            }
+        }
+
+        return $components;
+    }
+
+    public function get_components_with_tag ($tag) {
+        $components = $this->get_components();
+
+        $tag = strtolower($tag);
+
+        foreach($components as $key => $component) {
+            if(!in_array($tag, $component->get_tags())) {
+                unset($components[$key]);
+            }
+        }
+
         return $components;
     }
 
@@ -166,10 +210,9 @@ abstract class Post_Base_Class {
     public function get_s3_url () {
         global $as3cf;
 
-        if(!isset($as3cf) || !$as3cf || !$this->is_attachment())
-            return false;
+        if(isset($as3cf) && $as3cf)
+        var_dump($as3cf);exit;
 
-        return $as3cf->get_attachment_url($this->ID);
     }
 
     public function get_permalink () {
