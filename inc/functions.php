@@ -91,6 +91,12 @@ function get_post ($post_id = null, $get_fresh = false) {
     return $post;
 }
 
+function get_posts ($args) {
+    $query = new query($args);
+
+    return $query->get_posts();
+}
+
 function get_term ($term_id) {
     $transient_key = "_frc_taxonomy_whole_object_" . $term_id;
     if((FRC::use_cache() && ($term_object = get_transient($transient_key)) === false) || !FRC::use_cache()) {
@@ -133,6 +139,10 @@ function register_folders ($folders) {
 
     if(isset($folders['taxonomies'])) {
         register_taxonomies_folder($folders['taxonomies']);
+    }
+
+    if(isset($folders['ajax_endpoints'])) {
+        register_ajax_endpoints_folders($folders['ajax_endpoints']);
     }
 }
 
@@ -242,8 +252,6 @@ function register_options_folder ($options_directory) {
 
     $options_directory = rtrim($options_directory, "/");
 
-    $contents = array_diff(scandir($options_directory), ['..', '.']);
-
     foreach(glob($options_directory . '/*.php') as $file) {
         $file_info = pathinfo(basename($file));
 
@@ -256,6 +264,34 @@ function register_options_folder ($options_directory) {
             return;
         } else {
             $frc_framework->register_options_class($class_name);
+        }
+    }
+}
+
+function register_ajax_endpoints_folders ($endpoint_directory) {
+    $frc_framework = FRC::get_instance();
+
+    $endpoint_directory = get_stylesheet_directory() . '/' . $endpoint_directory;
+
+    if(!file_exists($endpoint_directory)) {
+        trigger_error("Trying to register a ajax endpoints folder, but it doesn't exist (" . $endpoint_directory . ").", E_USER_NOTICE);
+        return;
+    }
+
+    $frc_framework->ajax_endpoint_root_folders[] = $endpoint_directory;
+
+    $endpoint_directory = rtrim($endpoint_directory, "/");
+
+    foreach(glob($endpoint_directory . "/*.php") as $file) {
+        $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
+
+        require_once $file;
+
+        if(!class_exists($class_name)) {
+            trigger_error("Found custom ajax endpoint file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_NOTICE);
+            return;
+        } else {
+            $frc_framework->register_ajax_endpoint($class_name);
         }
     }
 }

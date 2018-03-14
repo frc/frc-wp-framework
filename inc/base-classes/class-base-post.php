@@ -93,7 +93,9 @@ abstract class Post_Base_Class {
         if($this->cache_options['cache_acf_fields']) {
             $transient_key = '_frc_api_post_acf_field_' . $post_id;
             if(FRC::use_cache() || ($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
-                $this->acf_fields = (object) get_fields($post_id);
+                $acf_fields = (object) get_fields($post_id);
+
+                $this->acf_fields = ($acf_fields) ? $acf_fields : [];
 
                 if(FRC::use_cache()) {
                     api_add_transient_to_group_list("post_" . $post_id, $transient_key);
@@ -101,7 +103,10 @@ abstract class Post_Base_Class {
                 }
             }
         } else {
-            $this->acf_fields = (object) get_fields($post_id);
+            $acf_fields = (object) get_fields($post_id);
+
+            $this->acf_fields = ($acf_fields) ? $acf_fields : [];
+
         }
     }
 
@@ -273,13 +278,4 @@ abstract class Post_Base_Class {
     protected function def () {}
 
     protected function saved () {}
-}
-
-/*
-    Create this just so that we can wrap regular wp_post's
-    through the system and as this is not a custom post type,
-    there is no need to put that through the registering machine.
-*/
-class Post extends Post_Base_Class {
-    public $custom_post_type = false;
 }
