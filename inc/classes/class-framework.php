@@ -30,6 +30,7 @@ class FRC {
 
     public function __construct () {
         if(function_exists("acf_add_local_field_group")) {
+            add_action('init', [$this, "setup_configurations"]);
             add_action('init', [$this, "setup_custom_taxonomies"]);
             add_action('init', [$this, "setup_post_types"]);
             add_action('init', [$this, "setup_post_type_taxonomies"]);
@@ -104,6 +105,11 @@ class FRC {
                 register_taxonomy($taxonomy_name, $post_types, $taxonomy);
             }
         }
+    }
+
+    public function setup_configurations () {
+        register_folders();
+        set_options();
     }
 
     public function setup_custom_taxonomies () {

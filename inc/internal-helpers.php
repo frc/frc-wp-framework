@@ -95,6 +95,7 @@ function api_proof_acf_schema_groups ($acf_schema_groups, $prefix = "") {
 }
 
 function api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
+
     foreach($acf_schema as $key => $field) {
         if(!isset($field['key'])) {
             $acf_schema[$key]['key'] = $prefix . "_" . $field['name'];
@@ -110,6 +111,10 @@ function api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     }
 
     return $acf_schema;
+}
+
+function api_validate_acf_schema ($schema, $post_type) {
+
 }
 
 function api_render ($file, $data = [], $extract = false) {

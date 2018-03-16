@@ -6,8 +6,12 @@ function set_options ($options = [], $override = false) {
 
     $last_options = $current_options ?? [];
 
+    $options = array_replace_recursive($last_options, $options);
+
+    $options = \apply_filters("frc_framework_options", $options);
+
     if(!$override)
-        FRC::get_instance()->options = array_replace_recursive($last_options, $options);
+        FRC::get_instance()->options = $options;
     else
         FRC::get_instance()->options = $options;
 }
@@ -128,21 +132,27 @@ function comp_render ($file, $data = [], $extract = false) {
     return api_render($frc_current_component_render_path . '/' . ltrim($file, '/'), $data, $extract);
 }
 
-function register_folders ($folders) {
-    if(isset($folders['post_types'])) {
-        register_custom_post_types_folder($folders['post_types']);
-    }
+function register_folders ($folders = []) {
+    $folders = \apply_filters("frc_framework_register_folders", $folders);
 
-    if(isset($folders['components'])) {
-        register_components_folder($folders['components']);
-    }
+    $folder_schema = [
+        'post_types'     => 'FRC\register_custom_post_types_folder',
+        'components'     => 'FRC\register_components_folder',
+        'taxonomies'     => 'FRC\register_taxonomies_folder',
+        'ajax_endpoints' => 'FRC\register_ajax_endpoints_folders'
+    ];
 
-    if(isset($folders['taxonomies'])) {
-        register_taxonomies_folder($folders['taxonomies']);
-    }
+    foreach($folders as $folder_key => $folder_value) {
+        if(!in_array($folder_key, array_keys($folder_schema)))
+            continue;
 
-    if(isset($folders['ajax_endpoints'])) {
-        register_ajax_endpoints_folders($folders['ajax_endpoints']);
+        if(is_array($folder_value)) {
+            foreach($folder_value as $folder) {
+                $folder_schema[$folder_key]($folder);
+            }
+        } else if (is_string($folder_value)) {
+            $folder_schema[$folder_key]($folder_value);
+        }
     }
 }
 

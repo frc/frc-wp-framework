@@ -38,7 +38,7 @@ abstract class Post_Base_Class {
 
     public function __construct ($post_id = null, $cache_options = []) {
         $this->def();
-        
+
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
 
@@ -194,20 +194,6 @@ abstract class Post_Base_Class {
         return $components;
     }
 
-    public function get_components_with_tag ($tag) {
-        $components = $this->get_components();
-
-        $tag = strtolower($tag);
-
-        foreach($components as $key => $component) {
-            if(!in_array($tag, $component->get_tags())) {
-                unset($components[$key]);
-            }
-        }
-
-        return $components;
-    }
-
     public function is_attachment () {
         return ($this->post_type == 'attachment');
     }
@@ -268,6 +254,10 @@ abstract class Post_Base_Class {
 
     public function save () {
         $this->saved();
+    }
+
+    private function is_post_type () {
+        return true;
     }
 
     /**

@@ -63,6 +63,10 @@ abstract class Component_Base_Class {
         $this->component_view_file = $this->component_path . '/view.php';
     }
 
+    public function get_parent_post () {
+        return get_post($this->parent_post_id);
+    }
+
     public function get_component_types () {
         return (is_string($this->component_types)) ? [$this->component_types] : $this->component_types;
     }
