@@ -9,7 +9,7 @@ abstract class Base_Ajax_Endpoint {
     public $params = [];
 
     public function __construct () {
-
+        $this->def();
     }
 
     public function setup_params ($params) {
@@ -17,4 +17,6 @@ abstract class Base_Ajax_Endpoint {
     }
 
     abstract public function get_data ();
+
+    public function def () {}
 }

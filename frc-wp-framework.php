@@ -31,6 +31,8 @@ require_once 'inc/internal-helpers.php';
 require_once 'inc/functions.php';
 require_once 'inc/transient-management.php';
 
+require_once 'inc/cli/cli.php';
+
 //Set the default options
 set_options([
     'override_post_type_classes'        => [

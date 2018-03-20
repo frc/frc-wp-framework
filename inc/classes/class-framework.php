@@ -15,10 +15,7 @@ class FRC {
     public $custom_post_type_classes;
     public $options_classes;
 
-    public $component_root_folders;
-    public $custom_post_type_root_folders;
-    public $taxonomies_root_folders;
-    public $ajax_endpoint_root_folders;
+    public $root_folders;
 
     public $local_cache_stack;
     public $additional_classes;

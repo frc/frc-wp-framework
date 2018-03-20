@@ -132,14 +132,23 @@ function comp_render ($file, $data = [], $extract = false) {
     return api_render($frc_current_component_render_path . '/' . ltrim($file, '/'), $data, $extract);
 }
 
-function register_folders ($folders = []) {
-    $folders = \apply_filters("frc_framework_register_folders", $folders);
+function register_folders () {
+    $default_folders = [
+        'post-types'     => 'frc/content-types/post-types',
+        'components'     => 'frc/content-types/components',
+        'taxonomies'     => 'frc/content-types/taxonomies',
+        'ajax-endpoints' => 'frc/ajax-endpoints',
+        'migrations'     => 'frc/migrations'
+    ];
+
+    $folders = \apply_filters("frc_framework_register_folders", $default_folders);
 
     $folder_schema = [
-        'post_types'     => 'FRC\register_custom_post_types_folder',
+        'post-types'     => 'FRC\register_post_types_folder',
         'components'     => 'FRC\register_components_folder',
         'taxonomies'     => 'FRC\register_taxonomies_folder',
-        'ajax_endpoints' => 'FRC\register_ajax_endpoints_folders'
+        'ajax-endpoints' => 'FRC\register_ajax_endpoints_folder',
+        'migrations'     => 'FRC\register_migrations_folder'
     ];
 
     foreach($folders as $folder_key => $folder_value) {
@@ -156,7 +165,7 @@ function register_folders ($folders = []) {
     }
 }
 
-function register_custom_post_types_folder ($custom_post_type_directory) {
+function register_post_types_folder ($custom_post_type_directory) {
     $frc_framework = FRC::get_instance();
 
     $custom_post_type_directory = get_stylesheet_directory() . '/' . $custom_post_type_directory;
@@ -166,7 +175,7 @@ function register_custom_post_types_folder ($custom_post_type_directory) {
         return;
     }
 
-    $frc_framework->custom_post_type_root_folders[] = $custom_post_type_directory;
+    $frc_framework->root_folders['post-types'][] = $custom_post_type_directory;
 
     $custom_post_type_directory = rtrim($custom_post_type_directory, "/");
 
@@ -196,7 +205,7 @@ function register_components_folder ($components_directory) {
         return;
     }
 
-    $frc_framework->component_root_folders[] = $components_directory;
+    $frc_framework->root_folders['components'][] = $components_directory;
 
     $components_directory = rtrim($components_directory, "/");
 
@@ -233,7 +242,7 @@ function register_taxonomies_folder ($taxonomies_directory) {
         return;
     }
 
-    $frc_framework->taxonomies_root_folders[] = $taxonomies_directory;
+    $frc_framework->root_folders['taxonomies'][] = $taxonomies_directory;
 
     $taxonomies_directory = rtrim($taxonomies_directory, "/");
 
@@ -278,7 +287,7 @@ function register_options_folder ($options_directory) {
     }
 }
 
-function register_ajax_endpoints_folders ($endpoint_directory) {
+function register_ajax_endpoints_folder ($endpoint_directory) {
     $frc_framework = FRC::get_instance();
 
     $endpoint_directory = get_stylesheet_directory() . '/' . $endpoint_directory;
@@ -288,7 +297,7 @@ function register_ajax_endpoints_folders ($endpoint_directory) {
         return;
     }
 
-    $frc_framework->ajax_endpoint_root_folders[] = $endpoint_directory;
+    $frc_framework->root_folders['ajax-endpoints'][] = $endpoint_directory;
 
     $endpoint_directory = rtrim($endpoint_directory, "/");
 
@@ -304,6 +313,26 @@ function register_ajax_endpoints_folders ($endpoint_directory) {
             $frc_framework->register_ajax_endpoint($class_name);
         }
     }
+}
+
+
+function register_migrations_folder ($migration_directory) {
+    $frc_framework = FRC::get_instance();
+
+    $migration_directory = get_stylesheet_directory() . '/' . ltrim(rtrim($migration_directory, "/"), "/");
+
+    if(!file_exists($migration_directory)) {
+        trigger_error("Trying to register a migration folder, but it doesn't exist (" . $migration_directory . ").", E_USER_NOTICE);
+        return;
+    }
+
+    $frc_framework->root_folders['migration'][] = $migration_directory;
+}
+
+function register_migration_folder ($folder) {
+    $frc_framework = FRC::get_instance();
+
+
 }
 
 function register_post_type_components ($post_type, $component_setups, $proper_name) {

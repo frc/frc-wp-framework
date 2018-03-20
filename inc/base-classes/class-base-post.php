@@ -201,9 +201,10 @@ abstract class Post_Base_Class {
     public function get_s3_url () {
         global $as3cf;
 
-        if(isset($as3cf) && $as3cf)
-        var_dump($as3cf);exit;
+        if(!isset($as3cf) || !$as3cf || !$this->is_attachment())
+            return false;
 
+        return $as3cf->get_attachment_url($this->ID);
     }
 
     public function get_permalink () {
@@ -254,6 +255,12 @@ abstract class Post_Base_Class {
 
     public function save () {
         $this->saved();
+    }
+
+    static public function get_all () {
+        return get_posts([
+            'post_type' => api_name_to_key(get_called_class())
+        ]);
     }
 
     private function is_post_type () {
