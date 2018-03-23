@@ -1,9 +1,5 @@
 <?php
 namespace FRC;
 
-class Option_Base_Class {
-    public $acf_schema          = [];
-    public $acf_schema_groups   = [];
-
-
+abstract class Option_Base_Class extends Base_Class {
 }

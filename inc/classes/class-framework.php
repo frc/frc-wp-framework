@@ -5,13 +5,13 @@ class FRC {
     public $options;
 
     public $component_data_locations;
-    public $component_classes;
 
     public $taxonomies;
-    public $taxonomy_classes;
     public $post_types_to_taxonomies;
     public $post_type_default_components;
 
+    public $component_classes;
+    public $taxonomy_classes;
     public $custom_post_type_classes;
     public $options_classes;
 
@@ -32,8 +32,9 @@ class FRC {
             add_action('init', [$this, "setup_post_types"]);
             add_action('init', [$this, "setup_post_type_taxonomies"]);
             add_action('init', [$this, "setup_ajax_system"]);
+            add_action('init', [$this, "setup_options"]);
 
-            if(is_admin()) {
+            if (is_admin()) {
                 add_action('init', [$this, "admin_setup_post_type_default_components"]);
                 add_action('save_post', [$this, "admin_save_post"]);
                 add_action('save_post', [$this, "admin_save_post_components"]);
@@ -49,6 +50,10 @@ class FRC {
         }
 
         return $frc_framework_instance;
+    }
+
+    static public function boot () {
+        self::get_instance();
     }
 
     public function admin_setup_post_type_default_components () {
@@ -400,10 +405,11 @@ class FRC {
             'title'  => $proper_name . ' Components',
             'fields' => [
                 [
-                    'label'     => 'Components',
-                    'name'      => 'frc_components',
-                    'type'      => 'flexible_content',
-                    'layouts'   => $component_acf_fields
+                    'label'         => 'Components',
+                    'name'          => 'frc_components',
+                    'type'          => 'flexible_content',
+                    'layouts'       => $component_acf_fields,
+                    'button_label'  => 'Add component'
                 ]
             ],
             'style' => 'seamless',
@@ -423,9 +429,44 @@ class FRC {
         \acf_add_local_field_group($component_field_group_args);
     }
 
+    public function setup_options () {
+        foreach($this->options_classes ?? [] as $options_class) {
+            $options_reference_class = new $options_class();
+
+            $options_acf_schema         = $options_reference_class->acf_schema ?? [];
+            $options_acf_schema_groups  = $options_reference_class->acf_schema_groups ?? [];
+            $options_args               = $options_reference_class->args ?? [];
+
+            $options_slug = 'frc_' . api_name_to_key($options_class);
+
+            \acf_add_options_page(array_replace_recursive([
+                'page_title' => api_name_to_proper($options_class),
+                'menu_title' => api_name_to_proper($options_class),
+                'menu_slug'  => $options_slug
+            ], $options_args));
+
+            $proofed_schema_groups = api_proof_acf_schema_groups(array_replace_recursive([
+                'title' => api_name_to_proper($options_class) . ' Options',
+                'fields' => $options_acf_schema,
+                'style' => 'seamless',
+                'location' => [
+                    [
+                        [
+                            'param'     => 'options_page',
+                            'operator'  => '==',
+                            'value'     => $options_slug
+                        ]
+                    ]
+                ]
+            ], $options_acf_schema_groups));
+
+            \acf_add_local_field_group($proofed_schema_groups);
+        }
+    }
+
     public function get_post_type_classes () {
-        $override_post_type_classes = array_flip($this->options['override_post_type_classes']);
-        $post_type_classes = array_flip($this->custom_post_type_classes);
+        $override_post_type_classes = array_flip($this->options['override_post_type_classes'] ?? []);
+        $post_type_classes = array_flip($this->custom_post_type_classes ?? []);
 
         return array_flip(array_replace($post_type_classes, $override_post_type_classes));
     }

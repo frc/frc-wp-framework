@@ -1,19 +1,10 @@
 <?php
 namespace FRC;
 
-abstract class Component_Base_Class {
-    /**
-     * Options that can be overridden in the child post class
-     */
-    public $acf_schema              = [];
-    public $acf_schema_groups       = [];
-    public $options                 = [];
-    public $tags                    = [];
-
+abstract class Component_Base_Class extends Base_Class {
     /**
      * Fields that contain data
      */
-    public $acf_fields          = [];
     public $parent_post_id      = null;
 
     /**
@@ -79,10 +70,6 @@ abstract class Component_Base_Class {
         return api_name_to_proper(get_class($this));
     }
 
-    public function get_tags () {
-        return array_map('strtolower', $this->tags);
-    }
-
     public function pre_save () {
         $this->pre_saved();
     }
@@ -94,11 +81,11 @@ abstract class Component_Base_Class {
     /**
      * Just some methods that are called at different times of the program.
      */
-    protected function init () {}
+    public function init () {}
 
-    protected function def () {}
+    public function def () {}
 
-    protected function saved () {}
+    public function saved () {}
 
-    protected function pre_saved() {}
+    public function pre_saved () {}
 }

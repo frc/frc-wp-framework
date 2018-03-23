@@ -2,13 +2,26 @@
 namespace FRC;
 
 function set_options ($options = [], $override = false) {
-    $current_options = FRC::get_instance()->options;
+    $set_options = \apply_filters("frc_framework_set_options", $options);
 
-    $last_options = $current_options ?? [];
+    if(empty($set_options)) {
+        $default_options = [
+            'override_post_type_classes' => [
+                'post' => 'FRC\Post',
+                'page' => 'FRC\Post'
+            ],
+            'local_cache_stack_size' => 20,
+            'cache_whole_post_objects' => true,
+            'setup_basic_post_type_components' => true,
+            'use_caching' => true
+        ];
 
-    $options = array_replace_recursive($last_options, $options);
+        $options_filtered = \apply_filters("frc_framework_options", $options);
 
-    $options = \apply_filters("frc_framework_options", $options);
+        $options = array_replace_recursive($default_options, FRC::get_instance()->options ?? [], $options, (is_array($options_filtered)) ? $options_filtered : []);
+    } else {
+        $options = $set_options;
+    }
 
     if(!$override)
         FRC::get_instance()->options = $options;
@@ -72,6 +85,8 @@ function get_post ($post_id = null, $get_fresh = false) {
         }
     }
 
+    $post_class_args = [];
+
     if($frc_options['cache_whole_post_objects']) {
         $post_class_args = [
             'cache_whole_object'    => false,
@@ -95,8 +110,12 @@ function get_post ($post_id = null, $get_fresh = false) {
     return $post;
 }
 
-function get_posts ($args) {
-    $query = new query($args);
+function get_posts ($args, $cache_results = false) {
+    $args = array_replace_recursive([
+        'posts_per_page' => -1
+    ], $args);
+
+    $query = new Query($args, $cache_results);
 
     return $query->get_posts();
 }
@@ -116,29 +135,14 @@ function get_term ($term_id) {
     return $term_object;
 }
 
-function render($file, $data = [], $extract = false) {
-    if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
-        $file .= '.php';
-
-    return api_render(get_stylesheet_directory() . '/' . ltrim($file, '/'), $data, $extract);
-}
-
-function comp_render ($file, $data = [], $extract = false) {
-    global $frc_current_component_render_path;
-
-    if(pathinfo($file, PATHINFO_EXTENSION) != 'php')
-        $file .= '.php';
-
-    return api_render($frc_current_component_render_path . '/' . ltrim($file, '/'), $data, $extract);
-}
-
-function register_folders () {
+function register_folders ($folders = []) {
     $default_folders = [
         'post-types'     => 'frc/content-types/post-types',
         'components'     => 'frc/content-types/components',
         'taxonomies'     => 'frc/content-types/taxonomies',
         'ajax-endpoints' => 'frc/ajax-endpoints',
-        'migrations'     => 'frc/migrations'
+        'migrations'     => 'frc/migrations',
+        'options'        => 'frc/options'
     ];
 
     $folders = \apply_filters("frc_framework_register_folders", $default_folders);
@@ -148,7 +152,8 @@ function register_folders () {
         'components'     => 'FRC\register_components_folder',
         'taxonomies'     => 'FRC\register_taxonomies_folder',
         'ajax-endpoints' => 'FRC\register_ajax_endpoints_folder',
-        'migrations'     => 'FRC\register_migrations_folder'
+        'migrations'     => 'FRC\register_migrations_folder',
+        'options'        => 'FRC\register_options_folder'
     ];
 
     foreach($folders as $folder_key => $folder_value) {
@@ -165,23 +170,19 @@ function register_folders () {
     }
 }
 
-function register_post_types_folder ($custom_post_type_directory) {
+function register_post_types_folder ($directory) {
     $frc_framework = FRC::get_instance();
 
-    $custom_post_type_directory = get_stylesheet_directory() . '/' . $custom_post_type_directory;
+    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
-    if(!file_exists($custom_post_type_directory)) {
-        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $custom_post_type_directory . ").", E_USER_NOTICE);
+    if(!file_exists($directory)) {
+        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    $frc_framework->root_folders['post-types'][] = $custom_post_type_directory;
+    $frc_framework->root_folders['post-types'][] = $directory;
 
-    $custom_post_type_directory = rtrim($custom_post_type_directory, "/");
-
-    $contents = array_diff(scandir($custom_post_type_directory), ['..', '.']);
-
-    foreach(glob($custom_post_type_directory . '/*.php') as $file) {
+    foreach(glob($directory . '/*.php') as $file) {
         $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
 
         require_once $file;
@@ -195,25 +196,22 @@ function register_post_types_folder ($custom_post_type_directory) {
     }
 }
 
-function register_components_folder ($components_directory) {
+function register_components_folder ($directory) {
     $frc_framework = FRC::get_instance();
 
-    $components_directory = get_stylesheet_directory() . '/' . $components_directory;
+    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
-    if(!file_exists($components_directory)) {
-        trigger_error("Trying to register a components folder, but it doesn't exist (" . $components_directory . ").", E_USER_NOTICE);
+    if(!file_exists($directory)) {
+        trigger_error("Trying to register a components folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    $frc_framework->root_folders['components'][] = $components_directory;
+    $frc_framework->root_folders['components'][] = $directory;
 
-    $components_directory = rtrim($components_directory, "/");
+    $contents = array_diff(scandir($directory), ['..', '.']);
 
-    $contents = array_diff(scandir($components_directory), ['..', '.']);
-
-    $component_dirs = [];
     foreach($contents as $content) {
-        $dir = $components_directory . '/' . $content;
+        $dir = $directory . '/' . $content;
 
         if(is_dir($dir)) {
             if(file_exists($dir . '/component.php') && file_exists($dir . '/view.php')) {
@@ -232,21 +230,19 @@ function register_components_folder ($components_directory) {
     }
 }
 
-function register_taxonomies_folder ($taxonomies_directory) {
+function register_taxonomies_folder ($directory) {
     $frc_framework = FRC::get_instance();
 
-    $taxonomies_directory = get_stylesheet_directory() . '/' . $taxonomies_directory;
+    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
-    if(!file_exists($taxonomies_directory)) {
-        trigger_error("Trying to register a taxonomies folder, but it doesn't exist (" . $taxonomies_directory . ").", E_USER_NOTICE);
+    if(!file_exists($directory)) {
+        trigger_error("Trying to register a taxonomies folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    $frc_framework->root_folders['taxonomies'][] = $taxonomies_directory;
+    $frc_framework->root_folders['taxonomies'][] = $directory;
 
-    $taxonomies_directory = rtrim($taxonomies_directory, "/");
-
-    foreach(glob($taxonomies_directory . '/*.php') as $file) {
+    foreach(glob($directory . '/*.php') as $file) {
         $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
 
         require_once $file;
@@ -261,22 +257,20 @@ function register_taxonomies_folder ($taxonomies_directory) {
 
 }
 
-function register_options_folder ($options_directory) {
+function register_options_folder ($directory) {
     $frc_framework = FRC::get_instance();
 
-    if(!file_exists($options_directory)) {
-        trigger_error("Trying to register a options folder, but it doesn't exist (" . $options_directory . ").", E_USER_NOTICE);
+    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
+
+    if(!file_exists($directory)) {
+        trigger_error("Trying to register a options folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    $options_directory = rtrim($options_directory, "/");
+    foreach(glob($directory . '/*.php') as $file) {
+        $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
 
-    foreach(glob($options_directory . '/*.php') as $file) {
-        $file_info = pathinfo(basename($file));
-
-        $class_name = $file_info['filename'];
-
-        require_once $options_directory . '/' . basename($file);
+        require_once $file;
 
         if(!class_exists($class_name)) {
             trigger_error("Found options file (" . $file . "), but not a class with the same name (" . $class_name . ").", E_USER_NOTICE);
@@ -287,21 +281,19 @@ function register_options_folder ($options_directory) {
     }
 }
 
-function register_ajax_endpoints_folder ($endpoint_directory) {
+function register_ajax_endpoints_folder ($directory) {
     $frc_framework = FRC::get_instance();
 
-    $endpoint_directory = get_stylesheet_directory() . '/' . $endpoint_directory;
+    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
-    if(!file_exists($endpoint_directory)) {
-        trigger_error("Trying to register a ajax endpoints folder, but it doesn't exist (" . $endpoint_directory . ").", E_USER_NOTICE);
+    if(!file_exists($directory)) {
+        trigger_error("Trying to register a ajax endpoints folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    $frc_framework->root_folders['ajax-endpoints'][] = $endpoint_directory;
+    $frc_framework->root_folders['ajax-endpoints'][] = $directory;
 
-    $endpoint_directory = rtrim($endpoint_directory, "/");
-
-    foreach(glob($endpoint_directory . "/*.php") as $file) {
+    foreach(glob($directory . "/*.php") as $file) {
         $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
 
         require_once $file;
@@ -316,23 +308,17 @@ function register_ajax_endpoints_folder ($endpoint_directory) {
 }
 
 
-function register_migrations_folder ($migration_directory) {
+function register_migrations_folder ($directory) {
     $frc_framework = FRC::get_instance();
 
-    $migration_directory = get_stylesheet_directory() . '/' . ltrim(rtrim($migration_directory, "/"), "/");
+    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
-    if(!file_exists($migration_directory)) {
-        trigger_error("Trying to register a migration folder, but it doesn't exist (" . $migration_directory . ").", E_USER_NOTICE);
+    if(!file_exists($directory)) {
+        trigger_error("Trying to register a migration folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    $frc_framework->root_folders['migration'][] = $migration_directory;
-}
-
-function register_migration_folder ($folder) {
-    $frc_framework = FRC::get_instance();
-
-
+    $frc_framework->root_folders['migration'][] = $directory;
 }
 
 function register_post_type_components ($post_type, $component_setups, $proper_name) {

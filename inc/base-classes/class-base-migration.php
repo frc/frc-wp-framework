@@ -2,11 +2,9 @@
 
 namespace FRC;
 
-abstract class Migration_Base_Class {
+abstract class Migration_Base_Class extends Base_Class {
 
     public $version = false;
-
-    public function __construct() {}
 
     abstract public function up ();
 

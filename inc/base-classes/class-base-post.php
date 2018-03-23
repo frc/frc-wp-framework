@@ -5,16 +5,12 @@ namespace FRC;
  * Class Post_Base_Class
  *
  */
-abstract class Post_Base_Class {
+abstract class Post_Base_Class extends Base_Class {
     /**
      * Options that can be overridden in the child post class
      */
     public      $custom_post_type = true;
-    public      $acf_schema;
-    public      $acf_schema_groups;
-    public      $options;
     public      $taxonomies;
-    public      $args;
     public      $included_components;
     public      $default_components;
     public      $cache_options = [
@@ -25,11 +21,6 @@ abstract class Post_Base_Class {
                     'cache_components'      => false
                 ];
     /**
-     * Fields that contain data
-     */
-    public      $acf_fields;
-
-    /**
      * Flags for helping out figuring out
      * the post object's state.
      */
@@ -37,7 +28,7 @@ abstract class Post_Base_Class {
     protected   $keep_build_data    = false;
 
     public function __construct ($post_id = null, $cache_options = []) {
-        $this->def();
+        parent::__construct();
 
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
@@ -266,13 +257,4 @@ abstract class Post_Base_Class {
     private function is_post_type () {
         return true;
     }
-
-    /**
-     * Just some methods that are called at different times of the program.
-     */
-    protected function init () {}
-
-    protected function def () {}
-
-    protected function saved () {}
 }

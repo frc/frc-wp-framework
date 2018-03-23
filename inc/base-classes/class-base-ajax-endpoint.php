@@ -2,7 +2,7 @@
 
 namespace FRC;
 
-abstract class Base_Ajax_Endpoint {
+abstract class Base_Ajax_Endpoint extends Base_Class {
 
     public $endpoint_name;
 
@@ -18,5 +18,14 @@ abstract class Base_Ajax_Endpoint {
 
     abstract public function get_data ();
 
+    /**
+     * Just some methods that are called at different times of the program.
+     */
+    public function init () {}
+
     public function def () {}
+
+    public function saved () {}
+
+    public function pre_saved () {}
 }

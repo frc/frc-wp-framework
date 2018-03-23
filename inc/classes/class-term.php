@@ -18,6 +18,10 @@ class Term {
 
         $this->permalink = get_term_link($id);
 
+        if(is_wp_error($this->permalink)) {
+            $this->permalink = false;
+        }
+
         $this->children = $this->retrieve_children();
 
         $this->acf_fields = (object) get_fields($this->taxonomy . "_" . $id);
