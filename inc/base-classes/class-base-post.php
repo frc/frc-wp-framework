@@ -214,13 +214,17 @@ abstract class Post_Base_Class extends Base_Class {
         return $this->get_terms("category");
     }
 
-    public function get_terms ($taxonomy = false) {
+    public function get_terms ($taxonomy = false, $all = false) {
         $terms = [];
 
         if(!$taxonomy) {
             foreach (get_post_taxonomies($this->ID) as $taxonomy_slug) {
                 foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => 0]) as $term_data) {
-                    $terms[$taxonomy_slug][] = get_term($term_data->term_id);
+                    if(!$all) {
+                        $terms[$taxonomy_slug][] = get_term($term_data->term_id);
+                    } else {
+                        $terms[] = get_term($term_data->term_id);
+                    }
                 }
             }
         } else {
@@ -230,6 +234,10 @@ abstract class Post_Base_Class extends Base_Class {
         }
 
         return $terms;
+    }
+
+    public function get_all_terms () {
+        return $this->get_terms(false, true);
     }
 
     public function get_included_components () {
