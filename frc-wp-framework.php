@@ -27,9 +27,7 @@ require_once 'inc/base-classes/class-base-post.php';
 require_once 'inc/base-classes/class-base-option.php';
 require_once 'inc/base-classes/class-base-component.php';
 require_once 'inc/base-classes/class-base-taxonomy.php';
-require_once 'inc/base-classes/class-base-ajax-endpoint.php';
 
-require_once 'inc/default-classes/class-ajax-post-query.php';
 require_once 'inc/default-classes/class-default-post.php';
 
 require_once 'inc/internal-helpers.php';

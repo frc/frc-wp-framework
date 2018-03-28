@@ -57,7 +57,12 @@ abstract class Post_Base_Class extends Base_Class {
         $transient_key = '_frc_api_post_object_' . $post_id;
 
         if(!FRC::use_cache() || !$this->cache_options['cache_whole_object'] || ($transient_data = get_transient($transient_key)) === false) {
-            $post = get_object_vars(\WP_Post::get_instance($post_id));
+            $post = \get_post($post_id);
+
+            if(!$post)
+                return;
+
+            $post = get_object_vars($post);
 
             $this->construct_acf_fields($post_id);
 

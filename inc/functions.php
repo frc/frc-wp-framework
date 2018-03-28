@@ -140,7 +140,6 @@ function register_folders ($folders = []) {
         'post-types'     => 'frc/content-types/post-types',
         'components'     => 'frc/content-types/components',
         'taxonomies'     => 'frc/content-types/taxonomies',
-        'ajax-endpoints' => 'frc/ajax-endpoints',
         'migrations'     => 'frc/migrations',
         'options'        => 'frc/options'
     ];
@@ -151,7 +150,6 @@ function register_folders ($folders = []) {
         'post-types'     => 'FRC\register_post_types_folder',
         'components'     => 'FRC\register_components_folder',
         'taxonomies'     => 'FRC\register_taxonomies_folder',
-        'ajax-endpoints' => 'FRC\register_ajax_endpoints_folder',
         'migrations'     => 'FRC\register_migrations_folder',
         'options'        => 'FRC\register_options_folder'
     ];
@@ -262,17 +260,17 @@ function register_options_folder ($directory) {
 
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
-    if(!file_exists($directory)) {
+    if (!file_exists($directory)) {
         trigger_error("Trying to register a options folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
-    foreach(glob($directory . '/*.php') as $file) {
+    foreach (glob($directory . '/*.php') as $file) {
         $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
 
         require_once $file;
 
-        if(!class_exists($class_name)) {
+        if (!class_exists($class_name)) {
             trigger_error("Found options file (" . $file . "), but not a class with the same name (" . $class_name . ").", E_USER_NOTICE);
             return;
         } else {
@@ -280,33 +278,6 @@ function register_options_folder ($directory) {
         }
     }
 }
-
-function register_ajax_endpoints_folder ($directory) {
-    $frc_framework = FRC::get_instance();
-
-    $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
-
-    if(!file_exists($directory)) {
-        trigger_error("Trying to register a ajax endpoints folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
-        return;
-    }
-
-    $frc_framework->root_folders['ajax-endpoints'][] = $directory;
-
-    foreach(glob($directory . "/*.php") as $file) {
-        $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
-
-        require_once $file;
-
-        if(!class_exists($class_name)) {
-            trigger_error("Found custom ajax endpoint file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_NOTICE);
-            return;
-        } else {
-            $frc_framework->register_ajax_endpoint($class_name);
-        }
-    }
-}
-
 
 function register_migrations_folder ($directory) {
     $frc_framework = FRC::get_instance();

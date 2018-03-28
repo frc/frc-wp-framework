@@ -109,7 +109,7 @@ class Framework {
     }
 
     private function migration_create () {
-        
+
     }
 
     private function migration_up () {

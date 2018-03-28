@@ -21,17 +21,12 @@ class FRC {
     public $additional_classes;
     public $excluded_classes;
 
-    public $ajax_endpoint_classes = [
-        'FRC\Ajax_Post_Query'
-    ];
-
     public function __construct () {
         if(function_exists("acf_add_local_field_group")) {
             add_action('init', [$this, "setup_configurations"]);
             add_action('init', [$this, "setup_custom_taxonomies"]);
             add_action('init', [$this, "setup_post_types"]);
             add_action('init', [$this, "setup_post_type_taxonomies"]);
-            add_action('init', [$this, "setup_ajax_system"]);
             add_action('init', [$this, "setup_options"]);
 
             if (is_admin()) {
@@ -145,7 +140,7 @@ class FRC {
 
             $frc_framework->taxonomies[$taxonomy_key] = $taxonomy_args;
 
-            $taxonomy_acf_schema = $reference_class->acf_scheme ?? false;
+            $taxonomy_acf_schema = $reference_class->acf_schema ?? false;
             $taxonomy_acf_groups = $reference_class->acf_schema_groups ?? false;
 
             if($taxonomy_acf_groups) {
@@ -276,83 +271,6 @@ class FRC {
         }
     }
 
-    public function ajax_endpoint_router () {
-        $uri = ltrim($_SERVER['REQUEST_URI'], "/");
-
-        if(!preg_match("/^\/?frc\-ajax/", $uri)) {
-            return;
-        }
-
-        $uri = str_replace("?" . $_SERVER['QUERY_STRING'], '', $uri);
-
-        $path = explode("/", $uri);
-
-        if(count($path) == 1)
-            return;
-
-        array_shift($path);
-
-        $endpoint_name = api_name_to_key($path[0]);
-
-        $endpoint_reference_class = false;
-        $endpoint_class = false;
-        foreach($this->ajax_endpoint_classes as $endpoint) {
-            $endpoint_reference_test_class = new $endpoint();
-
-            $endpoint_reference_endpoint = $endpoint_reference_test_class->endpoint_name ?? api_name_to_key($endpoint) ?? false;
-            if($endpoint_reference_endpoint == $endpoint_name) {
-                $endpoint_reference_class = $endpoint_reference_test_class;
-                $endpoint_class = $endpoint;
-                break;
-            }
-        }
-
-        if(!$endpoint_reference_class)
-            return;
-
-        array_shift($path);
-
-        $collected_params = [];
-
-        for($i = 0; $i < count($path); $i++) {
-            if(empty($path[$i]))
-                continue;
-
-            $collected_params[$path[$i]] = (count($path) > $i + 1) ? $path[++$i] : true;
-        }
-
-        $collected_params = array_merge($collected_params, $_REQUEST);
-
-        $endpoint_reference_class->setup_params($collected_params);
-        $data = $endpoint_reference_class->get_data();
-
-        if(!is_null($data)) {
-            if(is_object($data) || is_array($data)) {
-                http_response_code(200);
-
-                header("Content-Type: application/json");
-                echo json_encode($data);
-            } else if (is_string($data)) {
-                http_response_code(200);
-
-                echo $data;
-            }
-            die();
-        } else {
-            trigger_error("Ajax endpoint (" . $endpoint_class . ") output is null.", E_USER_NOTICE);
-            exit;
-        }
-    }
-
-    public function setup_ajax_system () {
-        function custom_rewrite_basic() {
-        }
-
-        add_action('template_redirect', [$this, "ajax_endpoint_router"]);
-
-
-    }
-
     private function add_post_type_taxonomies_to_lists ($taxonomies, $post_type_key_name) {
         //Setup taxonomy relationships
 
@@ -472,6 +390,7 @@ class FRC {
     }
 
     public function add_to_local_cache_stack ($post) {
+
         if(isset($this->local_cache_stack[$post->ID]))
             return;
 
@@ -511,10 +430,6 @@ class FRC {
 
     public function register_custom_post_type_class ($class_name) {
         $this->custom_post_type_classes[api_name_to_key($class_name)] = $class_name;
-    }
-
-    public function register_ajax_endpoint ($class_name) {
-        $this->ajax_endpoint_classes[] = $class_name;
     }
 
     static public function use_cache () {
