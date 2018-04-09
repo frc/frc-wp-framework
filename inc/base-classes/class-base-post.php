@@ -221,7 +221,7 @@ abstract class Post_Base_Class extends Base_Class {
 
     public function get_terms ($taxonomy = false, $all = false) {
         $terms = [];
-
+/*
         if(!$taxonomy) {
             foreach (get_post_taxonomies($this->ID) as $taxonomy_slug) {
                 foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => 0]) as $term_data) {
@@ -237,7 +237,7 @@ abstract class Post_Base_Class extends Base_Class {
                $terms[] = get_term($term_data->term_id);
             }
         }
-
+*/
         return $terms;
     }
 

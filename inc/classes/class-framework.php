@@ -7,7 +7,7 @@ class FRC {
     public $component_data_locations;
 
     public $taxonomies;
-    public $post_types_to_taxonomies;
+    public $post_type_taxonomies;
     public $post_type_default_components;
 
     public $component_classes;
@@ -92,14 +92,18 @@ class FRC {
     }
 
     public function setup_post_type_taxonomies () {
-        if(!empty($this->taxonomies) && is_array($this->taxonomies)) {
+        if(!empty($this->post_type_taxonomies)) {
             foreach ($this->taxonomies as $taxonomy_name => $taxonomy) {
-                if(!isset($this->post_types_to_taxonomies[$taxonomy_name]))
+
+                if(!isset($this->post_type_taxonomies['taxonomies'][$taxonomy_name]))
                     continue;
 
-                $post_types = $this->post_types_to_taxonomies[$taxonomy_name];
+                $taxonomy_post_types = $this->post_type_taxonomies['taxonomies'][$taxonomy_name];
 
-                register_taxonomy($taxonomy_name, $post_types, $taxonomy);
+                if(empty($taxonomy_post_types))
+                    continue;
+
+                register_taxonomy($taxonomy_name, $taxonomy_post_types, $taxonomy);
             }
         }
     }
@@ -113,14 +117,14 @@ class FRC {
         if(empty($this->taxonomy_classes))
             return;
 
+        $frc_framework = FRC::get_instance();
+
         foreach($this->taxonomy_classes as $taxonomy_class) {
             $reference_class = new $taxonomy_class();
 
             $taxonomy_options = $reference_class->options ?? [];
             $taxonomy_key     = $taxonomy_options['key_name'] ?? api_name_to_key($taxonomy_class);
             $taxonomy_proper  = $taxonomy_options['proper_name'] ?? api_name_to_proper($taxonomy_class);
-
-            $frc_framework    = FRC::get_instance();
 
             $default_custom_taxonomy_args = [
                 'labels' => [
@@ -164,6 +168,7 @@ class FRC {
                     ]
                 ]));
             }
+
         }
     }
 
@@ -180,6 +185,19 @@ class FRC {
             $post_type_proper_name  = $post_type_options['proper_name'] ?? api_name_to_proper($class_name);
             $post_type_key_name     = $post_type_options['key_name']    ?? $post_type_key_name;
             $post_type_description  = $post_type_options['description'] ?? 'Automatically generated post type';
+            $overwrite_args         = $reference_class->overwrite_args ?? false;
+
+            $post_type_taxonomies = $reference_class->taxonomies ?? [];
+
+            if(!empty($post_type_taxonomies)) {
+                $post_type_taxonomies = array_map('FRC\api_name_to_key', $post_type_taxonomies);
+
+                $this->post_type_taxonomies['post_types'][$post_type_key_name] = $post_type_taxonomies;
+
+                foreach ($post_type_taxonomies as $post_type_taxonomy) {
+                    $this->post_type_taxonomies['taxonomies'][$post_type_taxonomy][] = $post_type_key_name;
+                }
+            }
 
             if(isset($reference_class->custom_post_type) && $reference_class->custom_post_type) {
 
@@ -191,7 +209,6 @@ class FRC {
                         'singular_name' => $post_type_proper_name,
                         'menu_name' => $post_type_proper_name
                     ],
-                    'description' => $post_type_description,
                     'public' => true,
                     'publicly_queryable' => true,
                     'show_ui' => true,
@@ -206,26 +223,18 @@ class FRC {
                     'hierarchical' => false,
                     'menu_position' => 5,
                     'show_in_rest' => true,
-                    'supports' => [
-                        'title',
-                        'editor',
-                        'author',
-                        'thumbnail',
-                        'excerpt',
-                        'comments',
-                        'page-attributes'
-                    ]
+                    'taxonomies' => $post_type_taxonomies,
                 ];
 
                 $options_args = $reference_class->args ?? [];
 
-                $register_post_type_args = array_replace_recursive($default_register_post_type_args, $options_args);
+                if(!$overwrite_args) {
+                    $register_post_type_args = array_replace_recursive($default_register_post_type_args, $options_args);
+                } else {
+                    $register_post_type_args = array_merge_recursive($default_register_post_type_args, $options_args);
+                }
 
                 register_post_type($post_type_key_name, $register_post_type_args);
-            }
-
-            if(isset($reference_class->taxonomies) && is_array($reference_class->taxonomies) && !empty($reference_class->taxonomies)) {
-                $this->add_post_type_taxonomies_to_lists($reference_class->taxonomies, $post_type_key_name);
             }
 
             if(function_exists('acf_add_local_field_group')) {
@@ -267,22 +276,6 @@ class FRC {
                         }
                     }
                 }
-            }
-        }
-    }
-
-    private function add_post_type_taxonomies_to_lists ($taxonomies, $post_type_key_name) {
-        //Setup taxonomy relationships
-
-        if(is_array($taxonomies) && !empty($taxonomies)) {
-            foreach ($taxonomies as $taxonomy) {
-
-                $taxonomy = strtolower($taxonomy);
-
-                if(!isset($this->taxonomies[$taxonomy]))
-                    continue;
-
-                $this->post_types_to_taxonomies[$taxonomy][] = $post_type_key_name;
             }
         }
     }
