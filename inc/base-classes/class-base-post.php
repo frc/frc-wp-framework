@@ -223,7 +223,6 @@ abstract class Post_Base_Class extends Base_Class {
         $terms = [];
 
         if(!$taxonomy) {
-
             foreach (get_post_taxonomies($this->ID) as $taxonomy_slug) {
                 $taxonomy_obj = get_taxonomy($taxonomy_slug);
 
@@ -240,7 +239,13 @@ abstract class Post_Base_Class extends Base_Class {
                 }
             }
         } else {
-            foreach (wp_get_post_terms($this->ID, $taxonomy, ['parent' => 0]) as $term_data) {
+            $terms = wp_get_post_terms($this->ID, $taxonomy, ['parent' => 0]);
+
+            if(is_wp_error($terms)) {
+                return [];
+            }
+
+            foreach ($terms as $term_data) {
                $terms[] = get_term($term_data->term_id);
             }
         }
