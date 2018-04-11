@@ -128,7 +128,7 @@ abstract class Post_Base_Class extends Base_Class {
         if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
-            if(isset($this->acf_fields->frc_components)) {
+            if(isset($this->acf_fields->frc_components) && !empty($this->acf_fields->frc_components)) {
                 foreach ($this->acf_fields->frc_components as $frc_component_data) {
                     $component_class = false;
 
@@ -219,11 +219,18 @@ abstract class Post_Base_Class extends Base_Class {
         return $this->get_terms("category");
     }
 
-    public function get_terms ($taxonomy = false, $all = false) {
+    public function get_terms ($taxonomy = false, $all = false, $public = true) {
         $terms = [];
 
         if(!$taxonomy) {
+
             foreach (get_post_taxonomies($this->ID) as $taxonomy_slug) {
+                $taxonomy_obj = get_taxonomy($taxonomy_slug);
+
+                if($public && !$taxonomy_obj->public) {
+                    continue;
+                }
+
                 foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => 0]) as $term_data) {
                     if(!$all) {
                         $terms[$taxonomy_slug][] = get_term($term_data->term_id);
