@@ -253,6 +253,10 @@ abstract class Post_Base_Class extends Base_Class {
         return $terms;
     }
 
+    public function get_content () {
+        return apply_filters("the_content", $this->post_content);
+    }
+
     public function get_all_terms () {
         return $this->get_terms(false, true);
     }
