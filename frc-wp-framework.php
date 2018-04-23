@@ -20,6 +20,8 @@ require_once 'inc/classes/class-framework.php';
 require_once 'inc/classes/class-attachment.php';
 require_once 'inc/classes/class-term.php';
 require_once 'inc/classes/class-query.php';
+require_once 'inc/classes/class-render-data.php';
+require_once 'inc/classes/class-schema.php';
 
 require_once 'inc/base-classes/class-base-class.php';
 

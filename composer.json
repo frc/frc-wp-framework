@@ -9,5 +9,6 @@
             "email": "taneli.heikkinen@frantic.com"
         }
     ],
-    "require": {}
+    "require": {
+    }
 }

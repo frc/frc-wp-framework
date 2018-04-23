@@ -10,6 +10,7 @@ abstract class Base_Class {
     public $acf_schema_groups   = [];
     public $options             = [];
     public $args                = [];
+    public $schema              = null; // Schema handler object
 
     /**
      * Fields that contain data
@@ -17,6 +18,7 @@ abstract class Base_Class {
     public      $acf_fields;
 
     public function __construct() {
+        $this->schema();
         $this->def();
     }
 
@@ -27,4 +29,12 @@ abstract class Base_Class {
     public function init () {}
     public function saved () {}
     public function pre_saved() {}
+
+    public function schema () {
+        if($this->schema != null) {
+            return $this->schema;
+        }
+
+        return $this->schema = new Schema($this);
+    }
 }

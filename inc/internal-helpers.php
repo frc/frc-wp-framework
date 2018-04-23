@@ -113,15 +113,82 @@ function api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
     return $acf_schema;
 }
 
-function api_validate_acf_schema ($schema, $post_type) {
+function api_validate_acf_schema_item ($schema_item) {
+    $valid_acf_types = [
+        'text',
+        'textarea',
+        'true_false',
+        'accordion',
+        'button-group',
+        'checkbox',
+        'image'
+    ];
 
+    $errors = [];
+
+    $required_keys = [
+        'name',
+        'label',
+        'type',
+        'key'
+    ];
+
+    foreach($required_keys as $key) {
+        if(!isset($schema_item[$key])) {
+            return 'ACF Schema key: ' . $key . ' is not defined.';
+        }
+    }
+
+    $type = $schema_item['type'] ?? '';
+
+    if(!in_array($type, $valid_acf_types)) {
+        return 'ACF Schema item type is not a valid one. Currently the type is: ' . $type . '. The valid types are: ' . implode(", ", $valid_acf_types) . '.';
+    }
+
+    if($type == 'repeater') {
+        if(isset($schema_item['sub_fields']) && !empty($schema_item['sub_fields'])) {
+            foreach($schema_item['sub_fields'] as $schema_child_item) {
+                $errors[] = [
+                    api_validate_acf_schema_item($schema_child_item),
+                    $schema_child_item
+                ];
+
+                if($errors) {
+                    return $errors;
+                }
+            }
+        }
+    }
+
+    return $errors;
 }
+
+function api_validate_acf_schema ($schema) {
+
+    $errors = [];
+
+    foreach($schema as $schema_item) {
+        $validation = api_validate_acf_schema_item($schema_item);
+
+        $errors[] = [
+            $validation,
+            $schema_item
+        ];
+
+        if($errors) {
+            return $errors;
+        }
+    }
+
+    return $errors;
+}
+
 
 function api_render ($file, $data = [], $extract = false) {
     if($extract) {
         extract((array) $data);
     } else {
-        $data = (object) $data;
+        $data = new Render_Data($data);
     }
 
     ob_start();

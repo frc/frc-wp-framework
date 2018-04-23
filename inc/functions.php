@@ -174,7 +174,6 @@ function register_post_types_folder ($directory) {
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
     if(!file_exists($directory)) {
-        trigger_error("Trying to register a custom post type folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
@@ -200,7 +199,6 @@ function register_components_folder ($directory) {
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
     if(!file_exists($directory)) {
-        trigger_error("Trying to register a components folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
@@ -234,7 +232,6 @@ function register_taxonomies_folder ($directory) {
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
     if(!file_exists($directory)) {
-        trigger_error("Trying to register a taxonomies folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
@@ -261,7 +258,6 @@ function register_options_folder ($directory) {
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
     if (!file_exists($directory)) {
-        trigger_error("Trying to register a options folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 
@@ -285,7 +281,6 @@ function register_migrations_folder ($directory) {
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
     if(!file_exists($directory)) {
-        trigger_error("Trying to register a migration folder, but it doesn't exist (" . $directory . ").", E_USER_NOTICE);
         return;
     }
 

@@ -280,6 +280,23 @@ class FRC {
         }
     }
 
+    private function item_error_printing ($errors, $reference_class) {
+        if(!$errors) {
+            return;
+        }
+
+        $reflection = (new \ReflectionClass($reference_class));
+        $filename = $reflection->getFileName();
+        $class_name = $reflection->getName();
+
+        foreach($errors as $error) {
+            trigger_error($error[0], E_USER_NOTICE);
+
+        }
+
+        trigger_error("Errors in the definition of " . $class_name . ".", E_USER_ERROR);
+    }
+
     private function register_post_type_components ($post_type, $included_components, $proper_name, $class_name) {
         if(empty($included_components))
             return;
