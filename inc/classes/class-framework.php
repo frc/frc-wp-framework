@@ -176,6 +176,11 @@ class FRC {
         if(empty($this->custom_post_type_classes))
             return;
 
+        $register_post_type_fields_queue = [];
+
+        /*
+         * Register the post types themselves
+         */
         foreach($this->get_post_type_classes() as $post_type_key_name => $class_name) {
 
             $reference_class = new $class_name();
@@ -183,9 +188,12 @@ class FRC {
             $post_type_options = $reference_class->options ?? [];
 
             $post_type_proper_name  = $post_type_options['proper_name'] ?? api_name_to_proper($class_name);
-            $post_type_key_name     = $post_type_options['key_name']    ?? $post_type_key_name;
             $post_type_description  = $post_type_options['description'] ?? 'Automatically generated post type';
             $overwrite_args         = $reference_class->overwrite_args ?? false;
+
+            if(isset($reference_class->custom_post_type) && $reference_class->custom_post_type) {
+                $post_type_key_name = $reference_class->get_key_name();
+            }
 
             $post_type_taxonomies = $reference_class->taxonomies ?? [];
 
@@ -237,6 +245,23 @@ class FRC {
                 register_post_type($post_type_key_name, $register_post_type_args);
             }
 
+            $register_post_type_fields_queue[] = [
+                'class' => $reference_class,
+                'class_name' => $class_name,
+                'key_name' => $post_type_key_name,
+                'proper_name' => $post_type_proper_name
+            ];
+        }
+
+        /*
+         * Register post type components and acf fields
+         */
+        foreach($register_post_type_fields_queue as $post_type_data) {
+            $post_type_key_name     = $post_type_data['key_name'];
+            $class_name             = $post_type_data['class_name'];
+            $reference_class        = $post_type_data['class'];
+            $post_type_proper_name  = $post_type_data['proper_name'];
+
             if(function_exists('acf_add_local_field_group')) {
                 $options_acf_groups = $reference_class->acf_schema_groups ?? false;
                 $options_acf_fields = $reference_class->acf_schema ?? false;
@@ -247,9 +272,11 @@ class FRC {
                     \acf_add_local_field_group($options_acf_groups);
                 } else if ($options_acf_fields && !empty($options_acf_fields)) {
                     //Construct the acf fields
-                    $field_group_key = str_replace("_", "", $post_type_key_name . '_fields');
+                    $field_group_key = $reference_class->get_key_group_key_name();
 
                     $options_acf_fields = api_proof_acf_schema($options_acf_fields, $field_group_key);
+
+                    $this->item_error_printing(api_validate_acf_schema($options_acf_fields), $reference_class);
 
                     \acf_add_local_field_group(api_proof_acf_schema_groups([
                         'title'     => $reference_class->options['acf_group_name'] ?? $post_type_proper_name . ' Fields',
@@ -268,6 +295,7 @@ class FRC {
 
                 //Component initializations
                 if(isset($reference_class->included_components)) {
+
                     $this->register_post_type_components($post_type_key_name, $reference_class->included_components, $post_type_proper_name, $class_name);
 
                     if(isset($reference_class->default_components) && !empty($reference_class->default_components)) {

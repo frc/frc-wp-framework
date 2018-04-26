@@ -94,35 +94,36 @@ function api_proof_acf_schema_groups ($acf_schema_groups, $prefix = "") {
     return $acf_schema_groups;
 }
 
-function api_proof_acf_schema ($acf_schema, $prefix, $flexible = false) {
+function api_proof_acf_schema_item ($acf_schema_item, $prefix, $key = 0) {
+    if (!isset($acf_schema_item['key'])) {
+        $acf_schema_item['key'] = $prefix . "_" . $acf_schema_item['name'];
+    }
 
+    if (isset($acf_schema_item['sub_fields'])) {
+        $acf_schema_item['sub_fields'] = api_proof_acf_schema($acf_schema_item['sub_fields'], $prefix . "_" . $acf_schema_item['name']);
+    }
+
+    if (isset($acf_schema_item['layouts'])) {
+        $acf_schema_item['layouts'] = api_proof_acf_schema($acf_schema_item['layouts'], $prefix . '_' . $key, true);
+    }
+
+    return $acf_schema_item;
+}
+
+function api_proof_acf_schema ($acf_schema, $prefix) {
     foreach($acf_schema as $key => $field) {
-        if(!isset($field['key'])) {
-            $acf_schema[$key]['key'] = $prefix . "_" . $field['name'];
-        }
-
-        if(isset($field['sub_fields'])) {
-            $acf_schema[$key]['sub_fields'] = api_proof_acf_schema($field['sub_fields'], $prefix . "_" . $field['name']);
-        }
-
-        if(isset($field['layouts'])) {
-            $acf_schema[$key]['layouts'] = api_proof_acf_schema($field['layouts'], $prefix . '_' . $key, true);
-        }
+        $acf_schema[$key] = api_proof_acf_schema_item($acf_schema[$key], $prefix, $key);
     }
 
     return $acf_schema;
 }
 
 function api_validate_acf_schema_item ($schema_item) {
-    $valid_acf_types = [
-        'text',
-        'textarea',
-        'true_false',
-        'accordion',
-        'button-group',
-        'checkbox',
-        'image'
-    ];
+    $valid_acf_types = [];
+
+    foreach(acf_get_field_types() as $field_types) {
+        $valid_acf_types = array_merge($valid_acf_types, array_keys($field_types));
+    }
 
     $errors = [];
 
@@ -164,11 +165,14 @@ function api_validate_acf_schema_item ($schema_item) {
 }
 
 function api_validate_acf_schema ($schema) {
-
     $errors = [];
 
     foreach($schema as $schema_item) {
         $validation = api_validate_acf_schema_item($schema_item);
+
+        if(empty($validation)) {
+            continue;
+        }
 
         $errors[] = [
             $validation,
@@ -188,7 +192,9 @@ function api_render ($file, $data = [], $extract = false) {
     if($extract) {
         extract((array) $data);
     } else {
-        $data = new Render_Data($data);
+        if(is_array($data)) {
+            $data = new Render_Data($data);
+        }
     }
 
     ob_start();

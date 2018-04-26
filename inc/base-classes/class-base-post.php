@@ -269,10 +269,6 @@ abstract class Post_Base_Class extends Base_Class {
         return Attachment::from_post_thumbnail($this->ID);
     }
 
-    public function get_key_name () {
-        return api_name_to_key(get_class($this));
-    }
-
     public function save () {
         $this->saved();
     }

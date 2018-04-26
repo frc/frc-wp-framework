@@ -35,6 +35,14 @@ abstract class Base_Class {
             return $this->schema;
         }
 
-        return $this->schema = new Schema($this);
+        return ($this->schema = new Schema($this));
+    }
+
+    public function get_key_name () {
+        return $this->options['key_name'] ?? api_name_to_key(get_class($this));
+    }
+
+    public function get_key_group_key_name () {
+        return str_replace("_", "", $this->get_key_name() . '_fields');
     }
 }
