@@ -5,9 +5,7 @@ namespace FRC;
 class Render_Data implements \ArrayAccess {
     public function __construct ($data) {
         if(is_array($data)) {
-            foreach ($data as $key => $value) {
-                $this->$key = $value;
-            }
+            $this->add_array($data);
         } else if (is_object($data)) {
             foreach(get_object_vars($data) as $key => $value) {
                 $this->$key = $value;
@@ -33,5 +31,21 @@ class Render_Data implements \ArrayAccess {
 
     public function __get ($key) {
         return $this->$key ?? null;
+    }
+
+    public function add_array ($array = []) {
+        foreach ($array as $key => $value) {
+            $this->$key = $value;
+        }
+
+        return $this;
+    }
+
+    public static function prepare ($data = []) {
+        if(is_array($data)) {
+            return new self($data);
+        }
+
+        return $data;
     }
 }

@@ -187,14 +187,11 @@ function api_validate_acf_schema ($schema) {
     return $errors;
 }
 
-
 function api_render ($file, $data = [], $extract = false) {
     if($extract) {
         extract((array) $data);
     } else {
-        if(is_array($data)) {
-            $data = new Render_Data($data);
-        }
+        $data = Render_Data::prepare($data);
     }
 
     ob_start();

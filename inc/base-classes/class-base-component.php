@@ -6,6 +6,7 @@ abstract class Component_Base_Class extends Base_Class {
      * Fields that contain data
      */
     public $parent_post_id      = null;
+    public $data                = null;
 
     /**
      * Internal data for the component functionality
@@ -20,17 +21,21 @@ abstract class Component_Base_Class extends Base_Class {
     }
 
     public function prepare ($data) {
-        $this->acf_fields = (object) $data;
+        $this->acf_fields = $data;
         
         $this->init();
     }
 
     public function prepare_data ($data) {
-        unset($data->acf_fc_layout);
-        
-        $data->component = $this;
+        unset($data['acf_fc_layout']);
 
-        return (object) $data;
+        if(!isset($data['component'])) {
+            $data['component'] = $this;
+        }
+
+        $this->data = Render_Data::prepare($data);
+
+        return $this->data->add_array($this->data());
     }
 
     public function render () {
@@ -68,6 +73,10 @@ abstract class Component_Base_Class extends Base_Class {
 
     public function get_label () {
         return api_name_to_proper(get_class($this));
+    }
+
+    public function data () {
+        return [];
     }
 
     public function pre_save () {

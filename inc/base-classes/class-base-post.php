@@ -253,6 +253,18 @@ abstract class Post_Base_Class extends Base_Class {
         return $terms;
     }
 
+    public function get_terms_except_tax ($excluded_taxonomies = []) {
+        $excluded_taxonomies = array_map('strtolower', $excluded_taxonomies);
+
+        $terms = $this->get_terms(false, true, true);
+        foreach($terms as $term_key => $term_value) {
+            if(in_array(strtolower($term_value->taxonomy), $excluded_taxonomies)) {
+                unset($terms[$term_key]);
+            }
+        }
+        return array_values($terms);
+    }
+
     public function get_content () {
         return apply_filters("the_content", $this->post_content);
     }
