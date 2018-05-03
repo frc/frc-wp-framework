@@ -1,6 +1,10 @@
 <?php
 namespace FRC;
 
+function FRC () {
+    return FRC::get_instance();
+}
+
 function set_options ($options = [], $override = false) {
     $set_options = \apply_filters("frc_framework_set_options", $options);
 
@@ -18,31 +22,31 @@ function set_options ($options = [], $override = false) {
 
         $options_filtered = \apply_filters("frc_framework_options", $options);
 
-        $options = array_replace_recursive($default_options, FRC::get_instance()->options ?? [], $options, (is_array($options_filtered)) ? $options_filtered : []);
+        $options = array_replace_recursive($default_options, FRC()->options ?? [], $options, (is_array($options_filtered)) ? $options_filtered : []);
     } else {
         $options = $set_options;
     }
 
     if(!$override)
-        FRC::get_instance()->options = $options;
+        FRC()->options = $options;
     else
-        FRC::get_instance()->options = $options;
+        FRC()->options = $options;
 }
 
 function get_options () {
-    return FRC::get_instance()->options;
+    return FRC()->options;
 }
 
 function get_from_local_cache_stack ($post_id) {
-    return FRC::get_instance()->get_from_local_cache_stack($post_id);
+    return FRC()->get_from_local_cache_stack($post_id);
 }
 
 function add_to_local_cache_stack ($post) {
-    FRC::get_instance()->add_to_local_cache_stack($post);
+    FRC()->add_to_local_cache_stack($post);
 }
 
 function set_local_cache_stack ($posts) {
-    FRC::get_instance()->set_local_cache_stack($posts);
+    FRC()->set_local_cache_stack($posts);
 }
 
 function get_post ($post_id = null, $get_fresh = false) {
@@ -72,7 +76,7 @@ function get_post ($post_id = null, $get_fresh = false) {
 
     //Save the class of the post so we don't have to figure it out every time
     if(FRC::use_cache() || ($post_class_to_use = api_get_post_class_type($post_id)) === false) {
-        $children = FRC::get_instance()->get_post_type_classes();
+        $children = FRC()->get_post_type_classes();
 
         if(isset($children[get_post_type($post_id)])) {
             $post_class_to_use = $children[get_post_type($post_id)];
@@ -169,7 +173,7 @@ function register_folders ($folders = []) {
 }
 
 function register_post_types_folder ($directory) {
-    $frc_framework = FRC::get_instance();
+    $frc_framework = FRC();
 
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
@@ -194,7 +198,7 @@ function register_post_types_folder ($directory) {
 }
 
 function register_components_folder ($directory) {
-    $frc_framework = FRC::get_instance();
+    $frc_framework = FRC();
 
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
@@ -227,7 +231,7 @@ function register_components_folder ($directory) {
 }
 
 function register_taxonomies_folder ($directory) {
-    $frc_framework = FRC::get_instance();
+    $frc_framework = FRC();
 
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
@@ -253,7 +257,7 @@ function register_taxonomies_folder ($directory) {
 }
 
 function register_options_folder ($directory) {
-    $frc_framework = FRC::get_instance();
+    $frc_framework = FRC();
 
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
@@ -276,7 +280,7 @@ function register_options_folder ($directory) {
 }
 
 function register_migrations_folder ($directory) {
-    $frc_framework = FRC::get_instance();
+    $frc_framework = FRC();
 
     $directory = get_stylesheet_directory() . '/' . ltrim(rtrim($directory, "/"), "/");
 
@@ -288,5 +292,9 @@ function register_migrations_folder ($directory) {
 }
 
 function register_post_type_components ($post_type, $component_setups, $proper_name) {
-    return FRC::get_instance()->register_post_type_components($post_type, $component_setups, $proper_name);
+    return FRC()->register_post_type_components($post_type, $component_setups, $proper_name);
+}
+
+function get_registered_components () {
+    return FRC()->component_classes;
 }
