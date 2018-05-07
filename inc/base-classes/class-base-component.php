@@ -38,7 +38,7 @@ abstract class Component_Base_Class extends Base_Class {
         return $this->data->add_array($this->data());
     }
 
-    public function render () {
+    public function render ($data = []) {
         global $frc_current_component_render_path;
 
         if(empty($this->component_view_file)) {
@@ -46,7 +46,7 @@ abstract class Component_Base_Class extends Base_Class {
             return;
         }
 
-        $render_data = $this->prepare_data($this->acf_fields);
+        $render_data = $this->prepare_data(array_replace_recursive($this->acf_fields, $data));
 
         $frc_current_component_render_path = $this->component_path;
 
