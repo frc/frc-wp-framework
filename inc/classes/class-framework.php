@@ -21,6 +21,8 @@ class FRC {
     public $additional_classes;
     public $excluded_classes;
 
+    public $acf_schema_register_queue;
+
     public function __construct () {
         if(function_exists("acf_add_local_field_group")) {
             add_action('init', [$this, "setup_configurations"]);
@@ -28,6 +30,8 @@ class FRC {
             add_action('init', [$this, "setup_post_types"]);
             add_action('init', [$this, "setup_post_type_taxonomies"]);
             add_action('init', [$this, "setup_options"]);
+
+            add_action('init', [$this, "setup_content_type_acf_schemas"]);
 
             if (is_admin()) {
                 add_action('init', [$this, "admin_setup_post_type_default_components"]);
@@ -73,7 +77,8 @@ class FRC {
     }
 
     public function admin_save_post ($post_id) {
-        get_post($post_id)->save();
+        $post = get_post($post_id);
+        $post->save();
     }
 
     function admin_save_post_components ($post_id) {
@@ -88,23 +93,6 @@ class FRC {
 
         foreach($components as $component) {
             $component->save();
-        }
-    }
-
-    public function setup_post_type_taxonomies () {
-        if(!empty($this->post_type_taxonomies)) {
-            foreach ($this->taxonomies as $taxonomy_name => $taxonomy) {
-
-                if(!isset($this->post_type_taxonomies['taxonomies'][$taxonomy_name]))
-                    continue;
-
-                $taxonomy_post_types = $this->post_type_taxonomies['taxonomies'][$taxonomy_name];
-
-                if(empty($taxonomy_post_types))
-                    continue;
-
-                register_taxonomy($taxonomy_name, $taxonomy_post_types, $taxonomy);
-            }
         }
     }
 
@@ -144,31 +132,29 @@ class FRC {
 
             $frc_framework->taxonomies[$taxonomy_key] = $taxonomy_args;
 
-            $taxonomy_acf_schema = $reference_class->acf_schema ?? false;
-            $taxonomy_acf_groups = $reference_class->acf_schema_groups ?? false;
+            $this->acf_schema_register_queue[] = [
+                'type'        => 'taxonomy',
+                'class'       => $reference_class,
+                'key_name'    => $taxonomy_key,
+                'proper_name' => $taxonomy_proper
+            ];
+        }
+    }
 
-            if($taxonomy_acf_groups) {
-                \acf_add_local_field_group(api_proof_acf_schema_groups($taxonomy_acf_groups));
-            } else if($taxonomy_acf_schema) {
-                $field_prefix = api_name_to_key($taxonomy_class) . '_taxonomy_fields';
+    public function setup_post_type_taxonomies () {
+        if(!empty($this->post_type_taxonomies)) {
+            foreach ($this->taxonomies as $taxonomy_name => $taxonomy) {
 
-                $taxonomy_acf_schema = api_proof_acf_schema($taxonomy_acf_schema, $field_prefix);
+                if(!isset($this->post_type_taxonomies['taxonomies'][$taxonomy_name]))
+                    continue;
 
-                \acf_add_local_field_group(api_proof_acf_schema_groups([
-                    'title'     => api_name_to_proper($taxonomy_class) . ' Fields',
-                    'fields'    => $taxonomy_acf_schema,
-                    'location'  => [
-                        [
-                            [
-                                'param'     => 'taxonomy',
-                                'operator'  => '==',
-                                'value'     => api_name_to_key($taxonomy_class)
-                            ]
-                        ]
-                    ]
-                ]));
+                $taxonomy_post_types = $this->post_type_taxonomies['taxonomies'][$taxonomy_name];
+
+                if(empty($taxonomy_post_types))
+                    continue;
+
+                register_taxonomy($taxonomy_name, $taxonomy_post_types, $taxonomy);
             }
-
         }
     }
 
@@ -245,22 +231,25 @@ class FRC {
                 register_post_type($post_type_key_name, $register_post_type_args);
             }
 
-            $register_post_type_fields_queue[] = [
-                'class' => $reference_class,
-                'class_name' => $class_name,
-                'key_name' => $post_type_key_name,
+            $this->acf_schema_register_queue[] = [
+                'type'        => 'post_type',
+                'class'       => $reference_class,
+                'key_name'    => $post_type_key_name,
                 'proper_name' => $post_type_proper_name
             ];
         }
+    }
 
+    public function setup_content_type_acf_schemas () {
         /*
          * Register post type components and acf fields
          */
-        foreach($register_post_type_fields_queue as $post_type_data) {
-            $post_type_key_name     = $post_type_data['key_name'];
-            $class_name             = $post_type_data['class_name'];
-            $reference_class        = $post_type_data['class'];
-            $post_type_proper_name  = $post_type_data['proper_name'];
+        foreach($this->acf_schema_register_queue as $register_queue_data) {
+            $post_type_key_name     = $register_queue_data['key_name'];
+            $reference_class        = $register_queue_data['class'];
+            $post_type_proper_name  = $register_queue_data['proper_name'];
+            $class_name             = get_class($reference_class);
+            $type                   = $register_queue_data['type'];
 
             if(function_exists('acf_add_local_field_group')) {
                 $options_acf_groups = $reference_class->acf_schema_groups ?? false;
@@ -284,7 +273,7 @@ class FRC {
                         'location'  => [
                             [
                                 [
-                                    'param'     => 'post_type',
+                                    'param'     => $type,
                                     'operator'  => '==',
                                     'value'     => $post_type_key_name,
                                 ]
@@ -294,7 +283,7 @@ class FRC {
                 }
 
                 //Component initializations
-                if(isset($reference_class->included_components)) {
+                if(isset($reference_class->included_components) && $type == 'post_type') {
 
                     $this->register_post_type_components($post_type_key_name, $reference_class->included_components, $post_type_proper_name, $class_name);
 

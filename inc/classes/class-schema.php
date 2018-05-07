@@ -9,6 +9,10 @@ class Schema {
         $this->parent = $parent;
     }
 
+    public function add_text_field ($name, $label, $options = []) {
+        return $this->add_field($name, $label, 'text', $options);
+    }
+
     public function add_field($name, $label, $type, $options = []) {
         $acf_field_args = [
             'name' => $name,

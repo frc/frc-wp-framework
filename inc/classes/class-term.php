@@ -31,6 +31,10 @@ class Term {
         return get_term_link($this->term_id);
     }
 
+    public function get_label () {
+        return $this->name;
+    }
+
     public function retrieve_children () {
         $children = [];
         foreach(get_term_children($this->term_id, $this->taxonomy) as $child_term) {

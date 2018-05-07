@@ -125,6 +125,10 @@ function get_posts ($args, $cache_results = false) {
 }
 
 function get_term ($term_id) {
+    if(is_object($term_id) && $term_id instanceof \WP_Term) {
+        $term_id = $term_id->term_id;
+    }
+
     $transient_key = "_frc_taxonomy_whole_object_" . $term_id;
     if((FRC::use_cache() && ($term_object = get_transient($transient_key)) === false) || !FRC::use_cache()) {
         $term_object = new Term($term_id);
@@ -214,8 +218,8 @@ function register_components_folder ($directory) {
         $dir = $directory . '/' . $content;
 
         if(is_dir($dir)) {
-            if(file_exists($dir . '/component.php') && file_exists($dir . '/view.php')) {
-                require_once $dir . '/component.php';
+            if(file_exists($dir . '/' . $content . '.php') && file_exists($dir . '/view.php')) {
+                require_once $dir . '/' . $content . '.php';
 
                 if(!class_exists($content)) {
                     trigger_error("Found component directory and found all the proper files, but didn't find a class with the same name (" . $content . ").", E_USER_NOTICE);
@@ -297,4 +301,78 @@ function register_post_type_components ($post_type, $component_setups, $proper_n
 
 function get_registered_components () {
     return FRC()->component_classes;
+}
+
+function get_registered_taxonomies ($include_outside_taxonomies = false) {
+    $taxonomies = array_map("strtolower", FRC()->taxonomy_classes);
+
+    if($include_outside_taxonomies) {
+        $taxonomies = array_merge($taxonomies, array_values(
+                get_taxonomies([
+                    'public' => true
+                ])
+            )
+        );
+    }
+
+    return $taxonomies;
+}
+
+function get_post_dependencies ($post_id) {
+    $dependencies = get_transient('frc_post_dependencies_' . $post_id);
+
+    if(!$dependencies) {
+        $dependencies = [
+            'to' => [],
+            'from' => []
+        ];
+    }
+
+    return $dependencies;
+}
+
+function set_post_dependencies ($post_id, $dependencies) {
+    return set_transient('frc_post_dependencies_' . $post_id, $dependencies);
+}
+
+function clear_post_dependencies($post_id) {
+    $dependencies = get_post_dependencies($post_id);
+
+    delete_transient('frc_post_dependencies_' . $post_id);
+
+    foreach($dependencies as $dependency_list) {
+        if(!empty($dependency_list)) {
+            foreach($dependency_list as $dependency) {
+                clear_post_dependencies($dependency);
+            }
+        }
+    }
+}
+
+function add_post_dependency ($post_id, $dependent_to_id, $direction = 'to') {
+    $dependencies = get_post_dependencies($post_id);
+
+    if(in_array($dependent_to_id, $dependencies[$direction])) {
+       return;
+    }
+
+    $dependencies[$direction][] = $dependent_to_id;
+
+    set_post_dependencies($post_id, $dependencies);
+}
+
+function generate_post_dependencies ($post_id) {
+    if(get_transient('frc_post_dependencies_' . $post_id)) {
+        return;
+    }
+
+    $posts = get_post($post_id)->get_acf_fields_post_data();
+
+    foreach($posts as $post) {
+        add_post_dependency($post_id, $post->ID, 'to');
+
+        generate_post_dependencies($post->ID);
+
+        add_post_dependency($post->ID, $post_id, 'from');
+    }
 }

@@ -253,6 +253,28 @@ abstract class Post_Base_Class extends Base_Class {
         return $terms;
     }
 
+    public function get_dependencies () {
+        return get_post_dependencies($this->ID);
+    }
+
+    public function get_acf_fields_post_data () {
+        return $this->fetch_post_data($this->acf_fields);
+    }
+
+    private function fetch_post_data ($data) {
+        $returned_posts = [];
+
+        if(is_object($data) && $data instanceof \WP_Post) {
+            return [$data];
+        } if(is_array($data) || is_object($data)) {
+            foreach((array) $data as $key => $value) {
+                $returned_posts = array_merge($returned_posts, $this->fetch_post_data($value));
+            }
+        }
+
+        return $returned_posts;
+    }
+
     public function get_terms_except_tax ($excluded_taxonomies = []) {
         $excluded_taxonomies = array_map('strtolower', $excluded_taxonomies);
 
@@ -282,6 +304,9 @@ abstract class Post_Base_Class extends Base_Class {
     }
 
     public function save () {
+        clear_post_dependencies($this->ID);
+        generate_post_dependencies($this->ID);
+
         $this->saved();
     }
 
