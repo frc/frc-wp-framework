@@ -14,6 +14,9 @@ Version: 0.1
 if(defined("FRC_WP_FRAMEWORK_INIT"))
     return;
 
+define("FRC_WP_FRAMEWORK_INIT", true);
+define('FRC_COMPONENTS_KEY', 'frc_components');
+
 require_once 'inc/helpers/template.php';
 
 require_once 'inc/classes/class-framework.php';
@@ -40,5 +43,3 @@ require_once 'inc/transient-management.php';
 require_once 'inc/cli/cli.php';
 
 FRC::boot();
-
-define("FRC_WP_FRAMEWORK_INIT", true);

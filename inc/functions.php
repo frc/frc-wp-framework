@@ -376,3 +376,25 @@ function generate_post_dependencies ($post_id) {
         add_post_dependency($post->ID, $post_id, 'from');
     }
 }
+
+function add_component_to_post ($post_id, $component, $data) {
+    $frc = FRC();
+
+    if(!in_array($component, $frc->component_classes)) {
+        return false;
+    }
+
+    $current_field_data = get_field(FRC_COMPONENTS_KEY, $post_id) ?? [];
+
+    $merged_fields = array_merge([
+        array_replace($data, [
+            'acf_fc_layout' => api_name_to_key($component)
+        ])
+    ], $current_field_data);
+
+    $update_field = \update_field(FRC_COMPONENTS_KEY, $merged_fields, $post_id);
+
+    do_action('save_post', $post_id, \get_post($post_id), true);
+
+    return true;
+}

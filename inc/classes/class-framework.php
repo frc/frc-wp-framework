@@ -33,10 +33,12 @@ class FRC {
 
             add_action('init', [$this, "setup_content_type_acf_schemas"]);
 
+
+            add_action('save_post', [$this, "admin_save_post"]);
+            add_action('save_post', [$this, "admin_save_post_components"]);
+
             if (is_admin()) {
                 add_action('init', [$this, "admin_setup_post_type_default_components"]);
-                add_action('save_post', [$this, "admin_save_post"]);
-                add_action('save_post', [$this, "admin_save_post_components"]);
             }
         }
     }
@@ -56,7 +58,7 @@ class FRC {
     }
 
     public function admin_setup_post_type_default_components () {
-        add_filter('acf/load_value/name=frc_components', function ($value, $post_id, $field) {
+        add_filter('acf/load_value/name=' . FRC_COMPONENTS_KEY, function ($value, $post_id, $field) {
             if(get_post_status($post_id) != 'auto-draft')
                 return $value;
 
@@ -351,7 +353,7 @@ class FRC {
             'fields' => [
                 [
                     'label'         => 'Components',
-                    'name'          => 'frc_components',
+                    'name'          => FRC_COMPONENTS_KEY,
                     'type'          => 'flexible_content',
                     'layouts'       => $component_acf_fields,
                     'button_label'  => 'Add component'
@@ -381,14 +383,24 @@ class FRC {
             $options_acf_schema         = $options_reference_class->acf_schema ?? [];
             $options_acf_schema_groups  = $options_reference_class->acf_schema_groups ?? [];
             $options_args               = $options_reference_class->args ?? [];
+            $options_parent_menu        = strtolower($options_reference_class->parent_menu ?? '');
 
             $options_slug = 'frc_' . api_name_to_key($options_class);
 
-            \acf_add_options_page(array_replace_recursive([
-                'page_title' => api_name_to_proper($options_class),
-                'menu_title' => api_name_to_proper($options_class),
-                'menu_slug'  => $options_slug
-            ], $options_args));
+            if($options_parent_menu) {
+                \acf_add_options_sub_page(array_replace_recursive([
+                    'page_title' => api_name_to_proper($options_class),
+                    'menu_title' => api_name_to_proper($options_class),
+                    'menu_slug'  => $options_slug,
+                    'parent_slug' => $options_parent_menu
+                ]), $options_args);
+            } else {
+                \acf_add_options_page(array_replace_recursive([
+                    'page_title' => api_name_to_proper($options_class),
+                    'menu_title' => api_name_to_proper($options_class),
+                    'menu_slug' => $options_slug
+                ], $options_args));
+            }
 
             $proofed_schema_groups = api_proof_acf_schema_groups(array_replace_recursive([
                 'title' => api_name_to_proper($options_class) . ' Options',

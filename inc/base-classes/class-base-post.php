@@ -128,8 +128,8 @@ abstract class Post_Base_Class extends Base_Class {
         if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
-            if(isset($this->acf_fields->frc_components) && !empty($this->acf_fields->frc_components)) {
-                foreach ($this->acf_fields->frc_components as $frc_component_data) {
+            if(isset($this->acf_fields->{FRC_COMPONENTS_KEY}) && !empty($this->acf_fields->{FRC_COMPONENTS_KEY})) {
+                foreach ($this->acf_fields->{FRC_COMPONENTS_KEY} as $frc_component_data) {
                     $component_class = false;
 
                     foreach ($this->get_included_components() as $incl_component) {
