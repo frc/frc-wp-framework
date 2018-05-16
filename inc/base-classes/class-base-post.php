@@ -245,9 +245,9 @@ abstract class Post_Base_Class extends Base_Class {
                 return [];
             }
 
-            foreach ($terms as $term_data) {
-               $terms[] = get_term($term_data->term_id);
-            }
+            $terms = array_map(function ($item) {
+                return get_term($item->term_id);
+            }, $terms);
         }
 
         return $terms;
