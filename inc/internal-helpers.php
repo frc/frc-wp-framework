@@ -15,6 +15,9 @@ function api_get_transient_group_list ($transient_group) {
 }
 
 function api_set_transient_group_list ($transient_group, $list) {
+    if(empty($list))
+        return;
+
     update_option("_frc_transient_group_" . $transient_group, $list);
 }
 
