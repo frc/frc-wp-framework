@@ -228,7 +228,7 @@ function register_components_folder ($directory) {
                     $frc_framework->register_component_class($content, $dir);
                 }
             } else {
-                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both component.php and view.php -files.", E_USER_NOTICE);
+                trigger_error("Found component directory (" . $dir . "), but it doesn't contain both " . $content . ".php and view.php -files.", E_USER_NOTICE);
             }
         }
     }

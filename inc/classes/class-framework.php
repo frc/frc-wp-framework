@@ -33,7 +33,6 @@ class FRC {
 
             add_action('init', [$this, "setup_content_type_acf_schemas"]);
 
-
             add_action('save_post', [$this, "admin_save_post"]);
             add_action('save_post', [$this, "admin_save_post_components"]);
 
