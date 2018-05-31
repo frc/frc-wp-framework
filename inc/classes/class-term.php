@@ -22,7 +22,7 @@ class Term {
             $this->permalink = false;
         }
 
-        $this->children = $this->retrieve_children();
+        $this->children = $this->get_children();
 
         $this->acf_fields = (object) get_fields($this->taxonomy . "_" . $id);
     }
@@ -35,7 +35,7 @@ class Term {
         return $this->name;
     }
 
-    public function retrieve_children () {
+    public function get_children () {
         $children = [];
         foreach(get_term_children($this->term_id, $this->taxonomy) as $child_term) {
             $children[] = new Term($child_term);

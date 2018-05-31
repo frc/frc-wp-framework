@@ -125,8 +125,12 @@ function get_posts ($args, $cache_results = false) {
 }
 
 function get_term ($term_id) {
-    if(is_object($term_id) && $term_id instanceof \WP_Term) {
-        $term_id = $term_id->term_id;
+    if(is_object($term_id)) {
+        if ($term_id instanceof \WP_Term) {
+            $term_id = $term_id->term_id;
+        } else if($term_id instanceof Term) {
+            return $term_id;
+        }
     }
 
     $transient_key = "_frc_taxonomy_whole_object_" . $term_id;
