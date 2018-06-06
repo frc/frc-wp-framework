@@ -144,7 +144,7 @@ abstract class Post_Base_Class extends Base_Class {
 
                     $new_component = new $component_class();
                     $new_component->parent_post_id = $this->ID;
-                    $new_component->prepare($frc_component_data);
+                    $new_component->prepare(new Component_Data($frc_component_data));
 
                     $components[] = $new_component;
                 }
