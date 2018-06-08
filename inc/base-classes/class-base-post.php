@@ -281,7 +281,7 @@ abstract class Post_Base_Class extends Base_Class {
         return $returned_posts;
     }
 
-    public function get_terms_except_tax ($excluded_taxonomies = [], $parent = true) {
+    public function get_terms_except_tax ($excluded_taxonomies = [], $parent = 0) {
         $excluded_taxonomies = array_map('strtolower', $excluded_taxonomies);
 
         $terms = $this->get_terms(false, true, true, $parent);
