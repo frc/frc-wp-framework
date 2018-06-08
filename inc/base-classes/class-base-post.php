@@ -219,7 +219,8 @@ abstract class Post_Base_Class extends Base_Class {
         return $this->get_terms("category");
     }
 
-    public function get_terms ($taxonomy = false, $all = false, $public = true, $parent = 0) {
+    public function get_terms ($taxonomy = false, $all = false, $public = true, $parent = true) {
+        $parent = ($parent ? ['parent' => 0] : false);
         $terms = [];
 
         if(!$taxonomy) {
@@ -230,7 +231,7 @@ abstract class Post_Base_Class extends Base_Class {
                     continue;
                 }
 
-                foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => $parent]) as $term_data) {
+                foreach (wp_get_post_terms($this->ID, $taxonomy_slug, $parent) as $term_data) {
                     if(!$all) {
                         $terms[$taxonomy_slug][] = get_term($term_data->term_id);
                     } else {
@@ -239,7 +240,7 @@ abstract class Post_Base_Class extends Base_Class {
                 }
             }
         } else {
-            $terms = wp_get_post_terms($this->ID, $taxonomy, ['parent' => $parent]);
+            $terms = wp_get_post_terms($this->ID, $taxonomy, $parent);
 
             if(is_wp_error($terms)) {
                 return [];
@@ -275,7 +276,7 @@ abstract class Post_Base_Class extends Base_Class {
         return $returned_posts;
     }
 
-    public function get_terms_except_tax ($excluded_taxonomies = [], $parent = 0) {
+    public function get_terms_except_tax ($excluded_taxonomies = [], $parent = true) {
         $excluded_taxonomies = array_map('strtolower', $excluded_taxonomies);
 
         $terms = $this->get_terms(false, true, true, $parent);
