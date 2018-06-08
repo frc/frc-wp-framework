@@ -34,7 +34,7 @@ abstract class Post_Base_Class extends Base_Class {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
 
             $this->remove_unused_post_data();
-            
+
             //Construct the real post object
             $this->construct_post_object($post_id);
             $this->construct_default_components();
@@ -219,7 +219,7 @@ abstract class Post_Base_Class extends Base_Class {
         return $this->get_terms("category");
     }
 
-    public function get_terms ($taxonomy = false, $all = false, $public = true) {
+    public function get_terms ($taxonomy = false, $all = false, $public = true, $parent = 0) {
         $terms = [];
 
         if(!$taxonomy) {
@@ -230,7 +230,7 @@ abstract class Post_Base_Class extends Base_Class {
                     continue;
                 }
 
-                foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => 0]) as $term_data) {
+                foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => $parent]) as $term_data) {
                     if(!$all) {
                         $terms[$taxonomy_slug][] = get_term($term_data->term_id);
                     } else {
@@ -239,7 +239,7 @@ abstract class Post_Base_Class extends Base_Class {
                 }
             }
         } else {
-            $terms = wp_get_post_terms($this->ID, $taxonomy, ['parent' => 0]);
+            $terms = wp_get_post_terms($this->ID, $taxonomy, ['parent' => $parent]);
 
             if(is_wp_error($terms)) {
                 return [];
@@ -275,10 +275,10 @@ abstract class Post_Base_Class extends Base_Class {
         return $returned_posts;
     }
 
-    public function get_terms_except_tax ($excluded_taxonomies = []) {
+    public function get_terms_except_tax ($excluded_taxonomies = [], $parent = 0) {
         $excluded_taxonomies = array_map('strtolower', $excluded_taxonomies);
 
-        $terms = $this->get_terms(false, true, true);
+        $terms = $this->get_terms(false, true, true, $parent);
         foreach($terms as $term_key => $term_value) {
             if(in_array(strtolower($term_value->taxonomy), $excluded_taxonomies)) {
                 unset($terms[$term_key]);
