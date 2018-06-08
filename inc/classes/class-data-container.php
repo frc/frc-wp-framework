@@ -48,4 +48,20 @@ class Data_Container implements \ArrayAccess {
 
         return $data;
     }
+
+    public function replace_recursive ($data) {
+        $from = get_object_vars($this);
+
+        if(is_object($data)) {
+            $to = get_object_vars($data);
+        } else {
+            $to = $data;
+        }
+
+        $output_data = array_replace_recursive($from, $to);
+
+        $class_name = get_class($this);
+
+        return new $class_name($output_data);
+    }
 }

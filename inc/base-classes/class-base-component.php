@@ -46,7 +46,7 @@ abstract class Component_Base_Class extends Base_Class {
             return;
         }
 
-        $render_data = $this->prepare_data(array_replace_recursive($this->acf_fields, $data));
+        $render_data = $this->prepare_data($this->acf_fields->replace_recursive($data));
 
         $frc_current_component_render_path = $this->component_path;
 
