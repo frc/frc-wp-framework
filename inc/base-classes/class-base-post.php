@@ -220,6 +220,12 @@ abstract class Post_Base_Class extends Base_Class {
     }
 
     public function get_terms ($taxonomy = false, $all = false, $public = true, $parent = 0) {
+        $terms_args = [];
+
+        if($parent !== false) {
+            $terms_args['parent'] = $parent;
+        }
+
         $terms = [];
 
         if(!$taxonomy) {
@@ -230,7 +236,7 @@ abstract class Post_Base_Class extends Base_Class {
                     continue;
                 }
 
-                foreach (wp_get_post_terms($this->ID, $taxonomy_slug, ['parent' => $parent]) as $term_data) {
+                foreach (wp_get_post_terms($this->ID, $taxonomy_slug, $terms_args) as $term_data) {
                     if(!$all) {
                         $terms[$taxonomy_slug][] = get_term($term_data->term_id);
                     } else {
@@ -239,7 +245,7 @@ abstract class Post_Base_Class extends Base_Class {
                 }
             }
         } else {
-            $terms = wp_get_post_terms($this->ID, $taxonomy, ['parent' => $parent]);
+            $terms = wp_get_post_terms($this->ID, $taxonomy, $terms_args);
 
             if(is_wp_error($terms)) {
                 return [];
