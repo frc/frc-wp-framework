@@ -35,6 +35,10 @@ class Term {
         return $this->name;
     }
 
+    public function set_acf_field ($field_name, $field_value) {
+        update_field($field_name, $field_value, $this->taxonomy . '_' . $this->term_id);
+    }
+
     public function get_children () {
         $children = [];
         foreach(get_term_children($this->term_id, $this->taxonomy) as $child_term) {

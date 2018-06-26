@@ -17,7 +17,7 @@ function set_options ($options = [], $override = false) {
             'local_cache_stack_size' => 20,
             'cache_whole_post_objects' => true,
             'setup_basic_post_type_components' => true,
-            'use_caching' => false
+            'use_caching' => true
         ];
 
         $options_filtered = \apply_filters("frc_framework_options", $options);
@@ -49,7 +49,7 @@ function set_local_cache_stack ($posts) {
     FRC()->set_local_cache_stack($posts);
 }
 
-function get_post ($post_id = null, $get_fresh = false) {
+function get_post ($post_id = null, $get_fresh = false) : Post_Base_Class {
 
     if(is_object($post_id) && $post_id instanceof \WP_Post) {
         $post_id = $post_id->ID;
@@ -323,62 +323,63 @@ function get_registered_taxonomies ($include_outside_taxonomies = false) {
 }
 
 function get_post_dependencies ($post_id) {
-    $dependencies = get_transient('frc_post_dependencies_' . $post_id);
-
-    if(!$dependencies) {
-        $dependencies = [
-            'to' => [],
-            'from' => []
-        ];
-    }
-
-    return $dependencies;
+    return get_post_meta($post_id, 'frc_post_dependencies', true);
 }
 
 function set_post_dependencies ($post_id, $dependencies) {
-    return set_transient('frc_post_dependencies_' . $post_id, $dependencies);
+    update_post_meta($post_id, 'frc_post_dependencies', $dependencies);
 }
 
-function clear_post_dependencies($post_id) {
-    $dependencies = get_post_dependencies($post_id);
-
-    delete_transient('frc_post_dependencies_' . $post_id);
-
-    foreach($dependencies as $dependency_list) {
-        if(!empty($dependency_list)) {
-            foreach($dependency_list as $dependency) {
-                clear_post_dependencies($dependency);
-            }
-        }
-    }
+function delete_post_dependencies ($post_id) {
+    delete_post_meta($post_id, 'frc_post_dependencies');
 }
 
-function add_post_dependency ($post_id, $dependent_to_id, $direction = 'to') {
-    $dependencies = get_post_dependencies($post_id);
+function calculate_post_dependency_graph ($post_id, $dependency_graph = []) {
+    $post = get_post($post_id);
 
-    if(in_array($dependent_to_id, $dependencies[$direction])) {
-       return;
-    }
-
-    $dependencies[$direction][] = $dependent_to_id;
-
-    set_post_dependencies($post_id, $dependencies);
-}
-
-function generate_post_dependencies ($post_id) {
-    if(get_transient('frc_post_dependencies_' . $post_id)) {
-        return;
-    }
-
-    $posts = get_post($post_id)->get_acf_fields_post_data();
+    $posts = $post->get_acf_fields_post_data(true);
 
     foreach($posts as $post) {
-        add_post_dependency($post_id, $post->ID, 'to');
+        if(isset($dependency_graph[$post_id]) && in_array($post->ID, $dependency_graph[$post_id]['to'])) {
+            continue;
+        }
 
-        generate_post_dependencies($post->ID);
+        $dependency_graph[$post_id]['to'][] = $post->ID;
 
-        add_post_dependency($post->ID, $post_id, 'from');
+        $dependency_graph = calculate_post_dependency_graph($post->ID, $dependency_graph);
+
+        if(in_array($post_id, $dependency_graph[$post->ID]['to'])) {
+            $dependency_graph[$post_id]['from'][] = $post->ID;
+        }
     }
+
+    return $dependency_graph;
+}
+
+function calculate_post_dependencies ($post_id) {
+    $dependency_graph = calculate_post_dependency_graph($post_id);
+
+    foreach($dependency_graph as $dep_post_id => $deps) {
+        set_post_dependencies($dep_post_id, $deps);
+    }
+}
+
+function flush_post_cache ($post_id, $posts_flushed = []) {
+    $post_deps = get_post_dependencies($post_id);
+
+    foreach($post_deps as $pd) {
+        foreach($pd as $post_dep) {
+            if (in_array($post_dep, $posts_flushed)) {
+                continue;
+            }
+
+            $posts_flushed[] = $post_dep;
+
+            flush_post_cache($post_dep, $posts_flushed);
+        }
+    }
+
+    api_delete_transients_in_group('post_' . $post_id);
 }
 
 function add_component_to_post ($post_id, $component, $data) {

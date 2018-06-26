@@ -58,10 +58,6 @@ function api_set_post_class_type ($post_id, $class_type) {
     return true;
 }
 
-function get_taxonomy_class_type ($taxonomy) {
-    
-}
-
 function api_remove_post_class_type($post_id) {
     $class_types = (!empty(get_transient('_frc_post_class_types'))) ? get_transient('_frc_post_class_types') : [];
 
