@@ -263,18 +263,22 @@ abstract class Post_Base_Class extends Base_Class {
         return get_post_dependencies($this->ID);
     }
 
-    public function get_acf_fields_post_data () {
-        return $this->fetch_post_data($this->acf_fields);
+    public function get_acf_fields_post_data ($use_frc_post = false) {
+        return $this->fetch_post_data($this->acf_fields, $use_frc_post);
     }
 
-    private function fetch_post_data ($data) {
+    private function fetch_post_data ($data, $use_frc_post) {
         $returned_posts = [];
 
         if(is_object($data) && $data instanceof \WP_Post) {
-            return [$data];
+            if(!$use_frc_post) {
+                return [$data];
+            } else {
+                return [get_post($data)];
+            }
         } if(is_array($data) || is_object($data)) {
             foreach((array) $data as $key => $value) {
-                $returned_posts = array_merge($returned_posts, $this->fetch_post_data($value));
+                $returned_posts = array_merge($returned_posts, $this->fetch_post_data($value, $use_frc_post));
             }
         }
 
@@ -291,6 +295,11 @@ abstract class Post_Base_Class extends Base_Class {
             }
         }
         return array_values($terms);
+    }
+
+    public function flush_cache () {
+        flush_post_cache($this->ID);
+        calculate_post_dependencies($this->ID);
     }
 
     public function get_content () {
@@ -310,10 +319,13 @@ abstract class Post_Base_Class extends Base_Class {
     }
 
     public function save () {
-        clear_post_dependencies($this->ID);
-        generate_post_dependencies($this->ID);
+        $this->flush_cache();
 
         $this->saved();
+    }
+
+    public function set_acf_field ($field_name, $field_value) {
+        update_field($field_name, $field_value, $this->ID);
     }
 
     static public function get_all () {
