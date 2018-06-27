@@ -339,17 +339,19 @@ function calculate_post_dependency_graph ($post_id, $dependency_graph = []) {
 
     $posts = $post->get_acf_fields_post_data(true);
 
-    foreach($posts as $post) {
-        if(isset($dependency_graph[$post_id]) && in_array($post->ID, $dependency_graph[$post_id]['to'])) {
-            continue;
-        }
+    if(is_array($posts) && !empty($posts)) {
+        foreach($posts as $post) {
+            if(isset($dependency_graph[$post_id]) && in_array($post->ID, $dependency_graph[$post_id]['to'])) {
+                continue;
+            }
 
-        $dependency_graph[$post_id]['to'][] = $post->ID;
+            $dependency_graph[$post_id]['to'][] = $post->ID;
 
-        $dependency_graph = calculate_post_dependency_graph($post->ID, $dependency_graph);
+            $dependency_graph = calculate_post_dependency_graph($post->ID, $dependency_graph);
 
-        if(in_array($post_id, $dependency_graph[$post->ID]['to'])) {
-            $dependency_graph[$post_id]['from'][] = $post->ID;
+            if(in_array($post_id, $dependency_graph[$post->ID]['to'])) {
+                $dependency_graph[$post_id]['from'][] = $post->ID;
+            }
         }
     }
 
@@ -359,6 +361,10 @@ function calculate_post_dependency_graph ($post_id, $dependency_graph = []) {
 function calculate_post_dependencies ($post_id) {
     $dependency_graph = calculate_post_dependency_graph($post_id);
 
+    if(!is_array($dependency_graph) || !empty($dependency_graph)) {
+        return;
+    }
+    
     foreach($dependency_graph as $dep_post_id => $deps) {
         set_post_dependencies($dep_post_id, $deps);
     }
@@ -366,16 +372,18 @@ function calculate_post_dependencies ($post_id) {
 
 function flush_post_cache ($post_id, $posts_flushed = []) {
     $post_deps = get_post_dependencies($post_id);
+    
+    if(is_array($post_deps) && !empty($post_deps)){
+        foreach($post_deps as $pd) {
+            foreach($pd as $post_dep) {
+                if (in_array($post_dep, $posts_flushed)) {
+                    continue;
+                }
 
-    foreach($post_deps as $pd) {
-        foreach($pd as $post_dep) {
-            if (in_array($post_dep, $posts_flushed)) {
-                continue;
+                $posts_flushed[] = $post_dep;
+
+                flush_post_cache($post_dep, $posts_flushed);
             }
-
-            $posts_flushed[] = $post_dep;
-
-            flush_post_cache($post_dep, $posts_flushed);
         }
     }
 
