@@ -366,16 +366,17 @@ function calculate_post_dependencies ($post_id) {
 
 function flush_post_cache ($post_id, $posts_flushed = []) {
     $post_deps = get_post_dependencies($post_id);
+    if(is_array($post_deps)){
+        foreach($post_deps as $pd) {
+            foreach($pd as $post_dep) {
+                if (in_array($post_dep, $posts_flushed)) {
+                    continue;
+                }
 
-    foreach($post_deps as $pd) {
-        foreach($pd as $post_dep) {
-            if (in_array($post_dep, $posts_flushed)) {
-                continue;
+                $posts_flushed[] = $post_dep;
+
+                flush_post_cache($post_dep, $posts_flushed);
             }
-
-            $posts_flushed[] = $post_dep;
-
-            flush_post_cache($post_dep, $posts_flushed);
         }
     }
 

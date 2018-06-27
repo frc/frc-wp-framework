@@ -34,10 +34,12 @@ class Data_Container implements \ArrayAccess {
     }
 
     public function add_array ($array = []) {
+        if(!is_array($array)) {
+            return $this;
+        }
         foreach ($array as $key => $value) {
             $this->$key = $value;
         }
-
         return $this;
     }
 
