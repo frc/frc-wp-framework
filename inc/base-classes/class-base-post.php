@@ -264,25 +264,7 @@ abstract class Post_Base_Class extends Base_Class {
     }
 
     public function get_acf_fields_post_data ($use_frc_post = false) {
-        return $this->fetch_post_data($this->acf_fields, $use_frc_post);
-    }
-
-    private function fetch_post_data ($data, $use_frc_post) {
-        $returned_posts = [];
-
-        if(is_object($data) && $data instanceof \WP_Post) {
-            if(!$use_frc_post) {
-                return [$data];
-            } else {
-                return [get_post($data)];
-            }
-        } if(is_array($data) || is_object($data)) {
-            foreach((array) $data as $key => $value) {
-                $returned_posts = array_merge($returned_posts, $this->fetch_post_data($value, $use_frc_post));
-            }
-        }
-
-        return $returned_posts;
+        return get_posts_from_fields($this->acf_fields, $use_frc_post);
     }
 
     public function get_terms_except_tax ($excluded_taxonomies = [], $parent = 0) {
