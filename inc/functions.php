@@ -322,6 +322,42 @@ function get_registered_taxonomies ($include_outside_taxonomies = false) {
     return $taxonomies;
 }
 
+function get_posts_from_fields ($data, $use_frc_post = false) {
+    $returned_posts = [];
+
+    if(is_object($data) && $data instanceof \WP_Post) {
+        if(!$use_frc_post) {
+            return [$data];
+        } else {
+            return [get_post($data)];
+        }
+    } else if(isset($data['attachment'])) {
+        if(!$use_frc_post) {
+            return [\get_post($data['attachment']['ID'])];
+        } else {
+            return [get_post($data['attachment']['ID'])];
+        }
+    } else if(is_object($data) || is_array($data)) {
+        if(is_object($data)) {
+            $data = get_object_vars($data);
+        }
+
+        if(!empty($data)) {
+            foreach($data as $key => $value) {
+                $returned_posts = array_merge($returned_posts, get_posts_from_fields($value, $use_frc_post));
+            }
+        }
+    }
+
+    return $returned_posts;
+}
+
+function get_post_acf_fields_posts ($post_id, $use_frc_post = false) {
+    $fields = get_fields($post_id);
+
+    return get_posts_from_fields($fields, $use_frc_post);
+}
+
 function get_post_dependencies ($post_id) {
     return get_post_meta($post_id, 'frc_post_dependencies', true);
 }
@@ -337,7 +373,7 @@ function delete_post_dependencies ($post_id) {
 function calculate_post_dependency_graph ($post_id, $dependency_graph = []) {
     $post = get_post($post_id);
 
-    $posts = $post->get_acf_fields_post_data(true);
+    $posts = get_post_acf_fields_posts($post_id, true);
 
     if(is_array($posts) && !empty($posts)) {
         foreach($posts as $post) {
@@ -364,7 +400,7 @@ function calculate_post_dependencies ($post_id) {
     if(!is_array($dependency_graph) || !empty($dependency_graph)) {
         return;
     }
-    
+
     foreach($dependency_graph as $dep_post_id => $deps) {
         set_post_dependencies($dep_post_id, $deps);
     }
@@ -372,7 +408,7 @@ function calculate_post_dependencies ($post_id) {
 
 function flush_post_cache ($post_id, $posts_flushed = []) {
     $post_deps = get_post_dependencies($post_id);
-    
+
     if(is_array($post_deps) && !empty($post_deps)){
         foreach($post_deps as $pd) {
             foreach($pd as $post_dep) {
