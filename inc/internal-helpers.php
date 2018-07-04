@@ -18,7 +18,7 @@ function api_set_transient_group_list ($transient_group, $list) {
     if(empty($list))
         return;
 
-    update_option("_frc_transient_group_" . $transient_group, $list);
+    update_option("_frc_transient_group_" . $transient_group, $list, false);
 }
 
 function api_add_transient_to_group_list ($transient_group, $transient) {
@@ -44,7 +44,7 @@ function api_get_post_class_type ($post_id) {
 
     if(isset($class_types[$post_id]))
         return $class_types[$post_id];
-    
+
     return false;
 }
 
@@ -73,7 +73,7 @@ function api_name_to_key ($name) {
     $name = preg_replace("/[^a-zA-Z0-9\_]+/", "_", $name);
     $name = trim($name, "_");
     return strtolower($name);
-} 
+}
 
 function api_name_to_proper ($class_name) {
     if(is_object($class_name))
