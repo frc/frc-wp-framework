@@ -17,7 +17,7 @@ function set_options ($options = [], $override = false) {
             'local_cache_stack_size' => 20,
             'cache_whole_post_objects' => true,
             'setup_basic_post_type_components' => true,
-            'use_caching' => true
+            'use_caching' => false
         ];
 
         $options_filtered = \apply_filters("frc_framework_options", $options);
