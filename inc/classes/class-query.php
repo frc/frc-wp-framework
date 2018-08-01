@@ -49,14 +49,5 @@ class Query extends \WP_Query {
 }
 
 add_action('save_post', function () {
-    $wp_query_transient_list = api_get_transient_group_list("wp_query");
-
-    $new_transient_list = [];
-    foreach($wp_query_transient_list as $transient) {
-        delete_transient($transient);
-
-        $new_transient_list = $transient;
-    }
-
-    api_set_transient_group_list("wp_query", $new_transient_list);
+    api_delete_transients_in_group("wp_query");
 });
