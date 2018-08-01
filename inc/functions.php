@@ -14,7 +14,6 @@ function set_options ($options = [], $override = false) {
                 'post' => 'FRC\Post',
                 'page' => 'FRC\Post'
             ],
-            'local_cache_stack_size' => 20,
             'cache_whole_post_objects' => true,
             'setup_basic_post_type_components' => true,
             'use_caching' => true
@@ -37,29 +36,12 @@ function get_options () {
     return FRC()->options;
 }
 
-function get_from_local_cache_stack ($post_id) {
-    return FRC()->get_from_local_cache_stack($post_id);
-}
-
-function add_to_local_cache_stack ($post) {
-    FRC()->add_to_local_cache_stack($post);
-}
-
-function set_local_cache_stack ($posts) {
-    FRC()->set_local_cache_stack($posts);
-}
-
 function get_post ($post_id = null, $get_fresh = false) : Post_Base_Class {
 
     if(is_object($post_id) && $post_id instanceof \WP_Post) {
         $post_id = $post_id->ID;
     } else if(empty($post_id) && isset($GLOBALS['post'])) {
         $post_id = $GLOBALS['post']->ID;
-    }
-
-    if(($post = get_from_local_cache_stack($post_id)) !== false) {
-        $post->remove_unused_post_data();
-        return $post;
     }
 
     $frc_options = get_options();
@@ -69,7 +51,6 @@ function get_post ($post_id = null, $get_fresh = false) : Post_Base_Class {
         if(($post = get_transient($whole_object_transient_key)) !== false) {
             $post->remove_unused_post_data();
             $post->served_from_cache = true;
-            add_to_local_cache_stack($post);
             return $post;
         }
     }
@@ -108,8 +89,6 @@ function get_post ($post_id = null, $get_fresh = false) : Post_Base_Class {
 
         api_add_transient_to_group_list("post_" . $post_id, $whole_object_transient_key);
     }
-
-    add_to_local_cache_stack($post);
 
     return $post;
 }
@@ -349,7 +328,7 @@ function calculate_post_dependency_graph ($post_id, $dependency_graph = []) {
 
             $dependency_graph = calculate_post_dependency_graph($post->ID, $dependency_graph);
 
-            if(in_array($post_id, $dependency_graph[$post->ID]['to'])) {
+            if(isset($dependency_graph[$post->ID]) && in_array($post_id, $dependency_graph[$post->ID]['to'])) {
                 $dependency_graph[$post_id]['from'][] = $post->ID;
             }
         }

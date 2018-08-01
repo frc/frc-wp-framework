@@ -125,7 +125,7 @@ abstract class Post_Base_Class extends Base_Class {
             return [];
 
         $transient_key = '_frc_api_post_components_' . $this->ID;
-        if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
+        if(!FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
             if(isset($this->acf_fields->{FRC_COMPONENTS_KEY}) && !empty($this->acf_fields->{FRC_COMPONENTS_KEY})) {
@@ -150,7 +150,7 @@ abstract class Post_Base_Class extends Base_Class {
                 }
             }
 
-            if (FRC::use_cache()) {
+            if (FRC::use_cache() && $this->cache_options['cache_components']) {
                 set_transient($transient_key, $components);
                 api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
             }
