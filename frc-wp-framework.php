@@ -22,8 +22,8 @@ require_once 'inc/install.php';
 
 require_once 'inc/helpers/template.php';
 
-//require_once 'inc/admin/admin-page.php';
-//require_once 'inc/admin/admin-migrations.php';
+require_once 'inc/admin/admin-page.php';
+require_once 'inc/admin/admin-migrations.php';
 
 require_once 'inc/class-framework.php';
 require_once 'inc/classes/class-attachment.php';

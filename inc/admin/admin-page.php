@@ -5,7 +5,7 @@ namespace FRC;
 add_action('admin_menu', 'FRC\framework_admin_menu');
 
 function framework_admin_menu () {
-    add_menu_page( 'FRC Framework', 'FRC Framework', 'manage_options', 'frc-framework-options', 'FRC\framework_admin_options');
+    add_menu_page( 'FRC Framework', 'FRC Framework', 'manage_options', 'frc-framework-options' );
     add_submenu_page( 'frc-framework-options', 'Migrations', 'Migrations', 'manage_options', 'frc-framework-options-migrations', 'FRC\framework_admin_migrations' );
 }
 
@@ -19,14 +19,14 @@ function framework_admin_migrations () {
 
     $current_migration_version = (int) get_option('frc_framework_migration_version');
 
-    foreach(FRC::get_instance()->migration_classes as $class_name) {
-        $version = (new $class_name)->get_version();
-
-        $migrations[$version][] = [
-            'name' => $class_name,
-            'version' => $version,
-            'done' => $current_migration_version >= $version
-        ];
+    foreach(FRC::get_instance()->migration_classes as $version => $classes) {
+        foreach($classes as $class_name) {
+            $migrations[$version][] = [
+                'name'    => api_name_to_proper($class_name),
+                'version' => $version,
+                'done'    => $current_migration_version >= $version
+            ];
+        }
     }
 
     ksort($migrations);

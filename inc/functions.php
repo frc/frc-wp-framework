@@ -269,8 +269,6 @@ function register_migrations_folder ($directory) {
     if(!file_exists($directory)) {
         return;
     }
-    
-    return;
 
     $frc_framework->root_folders['migration'][] = $directory;
 
