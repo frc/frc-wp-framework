@@ -57,6 +57,11 @@ abstract class Post_Base_Class extends Base_Class {
         $transient_key = '_frc_api_post_object_' . $post_id;
 
         if(!FRC::use_cache() || !$this->cache_options['cache_whole_object'] || ($transient_data = get_transient($transient_key)) === false) {
+
+            if(FRC::use_cache()) {
+                delete_transients_in_group("post_" . $post_id);
+            }
+
             $post = \get_post($post_id);
 
             if(!$post)
@@ -69,8 +74,7 @@ abstract class Post_Base_Class extends Base_Class {
             $transient_data = ['post' => $post, 'acf_fields' => $this->acf_fields];
 
             if($this->cache_options['cache_whole_object'] && FRC::use_cache()) {
-                api_add_transient_to_group_list("post_" . $post_id, $transient_key);
-                set_transient($transient_key, $transient_data);
+                set_group_transient("post_" . $post_id, $transient_key, $transient_data);
             }
         } else {
             $this->served_from_cache = true;
@@ -94,8 +98,7 @@ abstract class Post_Base_Class extends Base_Class {
                 $this->acf_fields = ($acf_fields) ? $acf_fields : [];
 
                 if(FRC::use_cache()) {
-                    api_add_transient_to_group_list("post_" . $post_id, $transient_key);
-                    set_transient($transient_key, $this->acf_fields);
+                    set_group_transient("post_" . $post_id, $transient_key, $this->acf_fields);
                 }
             }
         } else {
@@ -151,8 +154,7 @@ abstract class Post_Base_Class extends Base_Class {
             }
 
             if (FRC::use_cache() && $this->cache_options['cache_components']) {
-                set_transient($transient_key, $components);
-                api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
+                set_group_transient("post_" . $this->ID, $transient_key, $components);
             }
         }
 

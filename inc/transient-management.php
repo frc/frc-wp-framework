@@ -3,8 +3,8 @@ namespace FRC;
 
 function post_transient_deletion ($post_id) {
     api_remove_post_class_type($post_id);
-    api_delete_transients_in_group("post_" . $post_id);
-    api_delete_transients_in_group("wp_query");
+    delete_transients_in_group("post_" . $post_id);
+    delete_transients_in_group("wp_query");
 }
 
 //Let's make sure we destroy transients after saving a post
@@ -22,7 +22,7 @@ function taxonomy_transient_deletion ($term_id, $taxonomy) {
         ]
     ]);
 
-    api_delete_transients_in_group("terms");
+    delete_transients_in_group("terms");
 
     foreach($posts as $post) {
         post_transient_deletion($post->ID);

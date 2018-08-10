@@ -22,6 +22,9 @@ require_once 'inc/install.php';
 
 require_once 'inc/helpers/template.php';
 
+//require_once 'inc/admin/admin-page.php';
+//require_once 'inc/admin/admin-migrations.php';
+
 require_once 'inc/class-framework.php';
 require_once 'inc/classes/class-attachment.php';
 require_once 'inc/classes/class-term.php';
@@ -37,6 +40,7 @@ require_once 'inc/base-classes/class-base-post.php';
 require_once 'inc/base-classes/class-base-option.php';
 require_once 'inc/base-classes/class-base-component.php';
 require_once 'inc/base-classes/class-base-taxonomy.php';
+require_once 'inc/base-classes/class-base-migration.php';
 
 require_once 'inc/default-classes/class-default-post.php';
 

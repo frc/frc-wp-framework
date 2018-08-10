@@ -97,13 +97,15 @@ class Framework {
      * @when after_wp_load
      */
     public function migration ($args, $assoc_args) {
-        $frc_framework = FRC\FRC::get_instace();
+        $frc_framework = \FRC\FRC::get_instace();
 
         $command = strtolower($args[0]);
 
         if(!in_array($command, ['create', 'up', 'down'])) {
             \WP_CLI::error("Unknown command. Commands are: create, up and down.");
         }
+
+
 
         $this->{"migration_" . $command}();
     }

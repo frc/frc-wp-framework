@@ -14,6 +14,7 @@ class FRC {
     public $taxonomy_classes;
     public $custom_post_type_classes;
     public $options_classes;
+    public $migration_classes;
 
     public $root_folders;
 
@@ -31,6 +32,12 @@ class FRC {
             if (is_admin()) {
                 add_action('init', [$this, "admin_setup_post_type_default_components"]);
             }
+        }
+
+        // If the cache seems to be flushed, remove all the stuff in the cache group tables
+        if(get_transient("_frc_check_cache_state") === false) {
+            flush_all_transients_in_groups();
+            set_transient("_frc_check_cache_state", true);
         }
     }
 
@@ -269,7 +276,8 @@ class FRC {
 
                     $options_acf_fields = api_proof_acf_schema($options_acf_fields, $field_group_key);
 
-                    $this->item_error_printing(api_validate_acf_schema($options_acf_fields), $reference_class);
+                    // This is not in working condition yet, so don't use it.
+                    // $this->item_error_printing(api_validate_acf_schema($options_acf_fields), $reference_class);
 
                     \acf_add_local_field_group(api_proof_acf_schema_groups([
                         'title'     => $reference_class->options['acf_group_name'] ?? $post_type_proper_name . ' Fields',
@@ -443,6 +451,10 @@ class FRC {
 
     public function register_options_class ($class_name) {
         $this->options_classes[] = $class_name;
+    }
+
+    public function register_migration_class ($version_number, $class_name) {
+        $this->migration_classes[$version_number][] = $class_name;
     }
 
     public function register_custom_post_type_class ($class_name) {

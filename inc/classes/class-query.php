@@ -34,7 +34,7 @@ class Query extends \WP_Query {
             if(FRC::use_cache() && $this->cache_results) {
                 $wp_query_transient_list[] = $transient_key;
 
-                api_add_transient_to_group_list("wp_query", $transient_key);
+                add_transient_to_group_list("wp_query", $transient_key);
 
                 set_transient($transient_key, $query_result, $this->expiration_time);
             }
@@ -49,5 +49,5 @@ class Query extends \WP_Query {
 }
 
 add_action('save_post', function () {
-    api_delete_transients_in_group("wp_query");
+    delete_transients_in_group("wp_query");
 });

@@ -5,53 +5,6 @@ function api_transient_name ($name) {
     return $name . (function_exists("pll_current_language")) ? ' ' . pll_current_language() : '';
 }
 
-function api_get_transient_group_list ($transient_group) {
-    global $wpdb;
-
-    $results = $wpdb->get_results($wpdb->prepare("SELECT transient_key FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s", $transient_group));
-
-    $transient_keys = [];
-    foreach($results as $result) {
-        $transient_keys[] = $result->transient_key;
-    }
-
-    return $transient_keys;
-}
-
-function api_add_transient_to_group_list ($transient_group, $transient) {
-    global $wpdb;
-
-    if($wpdb->query($wpdb->prepare("SELECT * FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s AND transient_key = %s", $transient_group, $transient))) {
-        return;
-    }
-
-    $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->prefix}frc_transient_data (group_name, transient_key) VALUES (%s, %s)", $transient_group, $transient));
-}
-
-function api_delete_transients_in_group ($transient_group) {
-    global $wpdb;
-
-    $list = api_get_transient_group_list($transient_group);
-
-    if(!empty($list) && is_array($list)) {
-        foreach ($list as $transient) {
-            delete_transient($transient);
-        }
-
-        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s", $transient_group));
-    }
-}
-
-function api_flush_all_transients () {
-    global $wpdb;
-
-    $results = $wpdb->get_results("SELECT group_name FROM {$wpdb->prefix}frc_transient_data GROUP BY group_name");
-
-    foreach($results as $result) {
-        api_delete_transients_in_group($result->group_name);
-    }
-}
-
 function api_get_post_class_type ($post_id) {
     $class_types = get_transient('_frc_post_class_types');
 

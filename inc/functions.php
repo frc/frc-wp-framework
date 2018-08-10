@@ -52,6 +52,8 @@ function get_post ($post_id = null, $get_fresh = false) : Post_Base_Class {
             $post->remove_unused_post_data();
             $post->served_from_cache = true;
             return $post;
+        } else {
+            delete_transients_in_group("post_" . $post_id);
         }
     }
 
@@ -84,10 +86,7 @@ function get_post ($post_id = null, $get_fresh = false) : Post_Base_Class {
     $post = new $post_class_to_use($post_id, $post_class_args);
 
     if(FRC::use_cache() && $frc_options['cache_whole_post_objects']) {
-
-        set_transient($whole_object_transient_key, $post);
-
-        api_add_transient_to_group_list("post_" . $post_id, $whole_object_transient_key);
+        set_group_transient("post_" . $post_id, $whole_object_transient_key, $post);
     }
 
     return $post;
@@ -118,8 +117,8 @@ function get_term ($term_id) {
 
         if(FRC::use_cache()) {
             set_transient($transient_key, $term_object);
-            api_add_transient_to_group_list("term_" . $term_id, $transient_key);
-            api_add_transient_to_group_list("terms", $transient_key);
+            add_transient_to_group_list("term_" . $term_id, $transient_key);
+            add_transient_to_group_list("terms", $transient_key);
         }
     }
 
@@ -177,7 +176,6 @@ function register_post_types_folder ($directory) {
 
         if(!class_exists($class_name)) {
             trigger_error("Found custom post type file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_NOTICE);
-            return;
         } else {
             $frc_framework->register_custom_post_type_class($class_name);
         }
@@ -206,7 +204,6 @@ function register_components_folder ($directory) {
 
                 if(!class_exists($content)) {
                     trigger_error("Found component directory and found all the proper files, but didn't find a class with the same name (" . $content . ").", E_USER_NOTICE);
-                    return;
                 } else {
                     $frc_framework->register_component_class($content, $dir);
                 }
@@ -235,7 +232,6 @@ function register_taxonomies_folder ($directory) {
 
         if(!class_exists($class_name)) {
             trigger_error("Found custom taxonomy file (" . $file . "), but not a class defined with the same name (" . $class_name . ").", E_USER_NOTICE);
-            return;
         } else {
             $frc_framework->register_taxonomy_class($class_name);
         }
@@ -259,7 +255,6 @@ function register_options_folder ($directory) {
 
         if (!class_exists($class_name)) {
             trigger_error("Found options file (" . $file . "), but not a class with the same name (" . $class_name . ").", E_USER_NOTICE);
-            return;
         } else {
             $frc_framework->register_options_class($class_name);
         }
@@ -274,8 +269,34 @@ function register_migrations_folder ($directory) {
     if(!file_exists($directory)) {
         return;
     }
+    
+    return;
 
     $frc_framework->root_folders['migration'][] = $directory;
+
+    foreach (glob($directory . '/*.php') as $file) {
+        $class_name = pathinfo(basename($file), PATHINFO_FILENAME);
+
+        $matches = [];
+
+        preg_match("/([0-9]+)\_(.+)/i", $class_name, $matches);
+
+        if(count($matches) != 3) {
+            trigger_error("Malformed migration filename: " . $file . ". Migration files should start with a number denoting the version number/order of the migration file and _ -character to separate it from the class name.", E_USER_NOTICE);
+        } else {
+            require_once $file;
+
+            $version_number = $matches[1];
+            $class_name = $matches[2];
+
+            if(!class_exists($class_name)) {
+                trigger_error("Found migration file " . $file . ", but not a class with the name " . $class_name . ".", E_USER_NOTICE);
+            } else {
+                $frc_framework->register_migration_class($version_number, $class_name);
+            }
+        }
+
+    }
 }
 
 function register_post_type_components ($post_type, $component_setups, $proper_name) {
@@ -402,7 +423,7 @@ function flush_post_cache ($post_id, $posts_flushed = []) {
         }
     }
 
-    api_delete_transients_in_group('post_' . $post_id);
+    delete_transients_in_group('post_' . $post_id);
 }
 
 function add_component_to_post ($post_id, $component, $data) {
@@ -425,4 +446,66 @@ function add_component_to_post ($post_id, $component, $data) {
     do_action('save_post', $post_id, \get_post($post_id), true);
 
     return true;
+}
+
+function set_group_transient ($transient_group, $transient_name, $transient_value, $expiration = 0) {
+    set_transient($transient_name, $transient_value, $expiration);
+    add_transient_to_group_list($transient_group, $transient_name);
+}
+
+function get_transient_group_list ($transient_group) {
+    global $wpdb;
+
+    $results = $wpdb->get_results($wpdb->prepare("SELECT transient_key FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s", $transient_group));
+
+    $transient_keys = [];
+    foreach($results as $result) {
+        $transient_keys[] = $result->transient_key;
+    }
+
+    return $transient_keys;
+}
+
+function add_transient_to_group_list ($transient_group, $transient) {
+    global $wpdb;
+
+    if($wpdb->query($wpdb->prepare("SELECT * FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s AND transient_key = %s", $transient_group, $transient))) {
+        return;
+    }
+
+    $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->prefix}frc_transient_data (group_name, transient_key) VALUES (%s, %s)", $transient_group, $transient));
+}
+
+function delete_transients_in_group ($transient_group) {
+    global $wpdb;
+
+    $list = get_transient_group_list($transient_group);
+
+    if(!empty($list) && is_array($list)) {
+        foreach ($list as $transient) {
+            delete_transient($transient);
+        }
+
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s", $transient_group));
+    }
+}
+
+function flush_all_transients_in_groups () {
+    global $wpdb;
+
+    $results = $wpdb->get_results("SELECT group_name FROM {$wpdb->prefix}frc_transient_data GROUP BY group_name");
+
+    foreach($results as $result) {
+        delete_transients_in_group($result->group_name);
+    }
+}
+
+function add_transient_to_group_list_dependencies ($transient_group, $transient_key) {
+    global $wpdb;
+
+    if($wpdb->query($wpdb->prepare("SELECT * FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s AND FIND_IN_SET(%s, dependent_groups)", $transient_group, $transient_key))) {
+        return;
+    }
+
+    $wpdb->query($wpdb->prepare("UPDATE {$wpdb->prefix}frc_transient_data SET dependent_groups = CONCAT(dependent_groups, ',', %s) WHERE group_name = %s", $transient_key, $transient_group));
 }
