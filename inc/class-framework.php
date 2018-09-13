@@ -17,7 +17,6 @@ class FRC {
 
     public $root_folders;
 
-    public $local_cache_stack;
     public $additional_classes;
     public $excluded_classes;
 
@@ -25,16 +24,9 @@ class FRC {
 
     public function __construct () {
         if(function_exists("acf_add_local_field_group")) {
-            add_action('init', [$this, "setup_configurations"]);
-            add_action('init', [$this, "setup_custom_taxonomies"]);
-            add_action('init', [$this, "setup_post_types"]);
-            add_action('init', [$this, "setup_post_type_taxonomies"]);
-            add_action('init', [$this, "setup_options"]);
-
-            add_action('init', [$this, "setup_content_type_acf_schemas"]);
+            add_action('init', [$this, "setup_all"]);
 
             add_action('save_post', [$this, "admin_save_post"]);
-            add_action('save_post', [$this, "admin_save_post_components"]);
 
             if (is_admin()) {
                 add_action('init', [$this, "admin_setup_post_type_default_components"]);
@@ -54,6 +46,15 @@ class FRC {
 
     static public function boot () {
         self::get_instance();
+    }
+
+    public function setup_all () {
+        $this->setup_configurations();
+        $this->setup_custom_taxonomies();
+        $this->setup_post_types();
+        $this->setup_post_type_taxonomies();
+        $this->setup_options();
+        $this->setup_content_type_acf_schemas();
     }
 
     public function admin_setup_post_type_default_components () {
@@ -80,6 +81,8 @@ class FRC {
     public function admin_save_post ($post_id) {
         $post = get_post($post_id);
         $post->save();
+
+        $this->admin_save_post_components($post_id);
     }
 
     function admin_save_post_components ($post_id) {
@@ -422,30 +425,6 @@ class FRC {
         $post_type_classes = array_flip($this->custom_post_type_classes ?? []);
 
         return array_flip(array_replace($post_type_classes, $override_post_type_classes));
-    }
-
-    public function add_to_local_cache_stack ($post) {
-
-        if(isset($this->local_cache_stack[$post->ID]))
-            return;
-
-        $this->local_cache_stack[$post->ID] = $post;
-
-        if(count($this->local_cache_stack) > $this->options['local_cache_stack_size'])
-            array_shift($this->local_cache_stack);
-    }
-
-    public function set_local_cache_stack ($posts) {
-        $cache_posts = [];
-        foreach($posts as $post) {
-            $cache_posts[$post->ID] = $post;
-        }
-
-        $this->local_cache_stack = $cache_posts;
-    }
-
-    public function get_from_local_cache_stack($post_id) {
-        return $this->local_cache_stack[$post_id] ?? false;
     }
 
     public function register_component_class ($class_name, $directory = "") {

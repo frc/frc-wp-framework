@@ -22,8 +22,6 @@ class Term {
             $this->permalink = false;
         }
 
-        $this->children = $this->get_children();
-
         $this->acf_fields = (object) get_fields($this->taxonomy . "_" . $id);
     }
 

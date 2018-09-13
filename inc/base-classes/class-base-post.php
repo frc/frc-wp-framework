@@ -125,7 +125,7 @@ abstract class Post_Base_Class extends Base_Class {
             return [];
 
         $transient_key = '_frc_api_post_components_' . $this->ID;
-        if(FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
+        if(!FRC::use_cache() || !$this->cache_options['cache_components'] || ($components = get_transient($transient_key)) === false) {
             $components = [];
 
             if(isset($this->acf_fields->{FRC_COMPONENTS_KEY}) && !empty($this->acf_fields->{FRC_COMPONENTS_KEY})) {
@@ -150,7 +150,7 @@ abstract class Post_Base_Class extends Base_Class {
                 }
             }
 
-            if (FRC::use_cache()) {
+            if (FRC::use_cache() && $this->cache_options['cache_components']) {
                 set_transient($transient_key, $components);
                 api_add_transient_to_group_list("post_" . $this->ID, $transient_key);
             }
@@ -264,25 +264,7 @@ abstract class Post_Base_Class extends Base_Class {
     }
 
     public function get_acf_fields_post_data ($use_frc_post = false) {
-        return $this->fetch_post_data($this->acf_fields, $use_frc_post);
-    }
-
-    private function fetch_post_data ($data, $use_frc_post) {
-        $returned_posts = [];
-
-        if(is_object($data) && $data instanceof \WP_Post) {
-            if(!$use_frc_post) {
-                return [$data];
-            } else {
-                return [get_post($data)];
-            }
-        } if(is_array($data) || is_object($data)) {
-            foreach((array) $data as $key => $value) {
-                $returned_posts = array_merge($returned_posts, $this->fetch_post_data($value, $use_frc_post));
-            }
-        }
-
-        return $returned_posts;
+        return get_posts_from_fields($this->acf_fields, $use_frc_post);
     }
 
     public function get_terms_except_tax ($excluded_taxonomies = [], $parent = 0) {

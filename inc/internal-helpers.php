@@ -6,37 +6,50 @@ function api_transient_name ($name) {
 }
 
 function api_get_transient_group_list ($transient_group) {
-    $query_list = get_option("_frc_transient_group_" . $transient_group);
+    global $wpdb;
 
-    if(empty($query_list))
-        return [];
+    $results = $wpdb->get_results($wpdb->prepare("SELECT transient_key FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s", $transient_group));
 
-    return $query_list;
-}
+    $transient_keys = [];
+    foreach($results as $result) {
+        $transient_keys[] = $result->transient_key;
+    }
 
-function api_set_transient_group_list ($transient_group, $list) {
-    if(empty($list))
-        return;
-
-    update_option("_frc_transient_group_" . $transient_group, $list);
+    return $transient_keys;
 }
 
 function api_add_transient_to_group_list ($transient_group, $transient) {
-    $transients = api_get_transient_group_list($transient_group);
-    $transients[] = $transient;
-    api_set_transient_group_list($transient_group, $transients);
+    global $wpdb;
+
+    if($wpdb->query($wpdb->prepare("SELECT * FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s AND transient_key = %s", $transient_group, $transient))) {
+        return;
+    }
+
+    $wpdb->query($wpdb->prepare("INSERT INTO {$wpdb->prefix}frc_transient_data (group_name, transient_key) VALUES (%s, %s)", $transient_group, $transient));
 }
 
 function api_delete_transients_in_group ($transient_group) {
+    global $wpdb;
+
     $list = api_get_transient_group_list($transient_group);
 
     if(!empty($list) && is_array($list)) {
         foreach ($list as $transient) {
             delete_transient($transient);
         }
-    }
 
-    api_set_transient_group_list($transient_group, []);
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}frc_transient_data WHERE group_name = %s", $transient_group));
+    }
+}
+
+function api_flush_all_transients () {
+    global $wpdb;
+
+    $results = $wpdb->get_results("SELECT group_name FROM {$wpdb->prefix}frc_transient_data GROUP BY group_name");
+
+    foreach($results as $result) {
+        api_delete_transients_in_group($result->group_name);
+    }
 }
 
 function api_get_post_class_type ($post_id) {
@@ -121,7 +134,7 @@ function api_validate_acf_schema_item ($schema_item) {
     $valid_acf_types = [];
 
     foreach(acf_get_field_types() as $field_types) {
-        $valid_acf_types = array_merge($valid_acf_types, array_keys($field_types));
+        $valid_acf_types[] = $field_types->name;
     }
 
     $errors = [];
