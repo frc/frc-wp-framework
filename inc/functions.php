@@ -507,3 +507,11 @@ function add_transient_to_group_list_dependencies ($transient_group, $transient_
 
     $wpdb->query($wpdb->prepare("UPDATE {$wpdb->prefix}frc_transient_data SET dependent_groups = CONCAT(dependent_groups, ',', %s) WHERE group_name = %s", $transient_key, $transient_group));
 }
+
+function set_current_migration_version ($version) {
+    update_option("frc_framework_migration_version", (int) $version);
+}
+
+function get_current_migration_version () {
+    return (int) get_option("frc_framework_migration_version");
+}
