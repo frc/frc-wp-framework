@@ -332,7 +332,6 @@ class FRC {
 
         $component_acf_fields = [];
 
-        $current_index = 0;
         foreach($included_components as $component) {
             if(!class_exists($component)) {
                 trigger_error("It seems that one of your post types (" . $post_type . "/" . $class_name . ") is trying to include a component (" . $component . "), that doesn't exist.", E_USER_NOTICE);
@@ -344,7 +343,7 @@ class FRC {
             $component_args         = $component_reference_class->args ?? [];
             $component_options      = $component_reference_class->options ?? [];
             $component_proper_name  = $component_options['proper_name'] ?? api_name_to_proper($component);
-            $component_key          = md5('group_' . $current_index . '_' . api_name_to_key($component));
+            $component_key          = md5('group_' . api_name_to_key($post_type) . '_' . api_name_to_key($component));
 
             $component_setup_list['components'][api_name_to_key($component)] = $component;
 
@@ -354,8 +353,6 @@ class FRC {
                 'label'      => $component_proper_name,
                 'sub_fields' => $component_reference_class->acf_schema
             ], $component_args);
-
-            $current_index++;
         }
 
         $component_field_group_args = api_proof_acf_schema_groups([
@@ -379,7 +376,7 @@ class FRC {
                     ]
                 ]
             ]
-        ], $current_index . '_group_');
+        ], api_name_to_key($post_type) . '_components_group_');
 
         $component_field_group_args = array_replace_recursive($component_field_group_args, $component_setup['acf_group_schema'] ?? []);
 
