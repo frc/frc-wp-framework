@@ -87,7 +87,7 @@ function api_validate_acf_schema_item ($schema_item) {
     $valid_acf_types = [];
 
     foreach(acf_get_field_types() as $field_types) {
-        $valid_acf_types = array_merge($valid_acf_types, array_keys($field_types));
+        $valid_acf_types[] = $field_types->name;
     }
 
     $errors = [];
