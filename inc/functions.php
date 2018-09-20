@@ -395,7 +395,7 @@ function calculate_post_dependency_graph ($post_id, $dependency_graph = []) {
 function calculate_post_dependencies ($post_id) {
     $dependency_graph = calculate_post_dependency_graph($post_id);
 
-    if(!is_array($dependency_graph) || !empty($dependency_graph)) {
+    if(!is_array($dependency_graph) || empty($dependency_graph)) {
         return;
     }
 
