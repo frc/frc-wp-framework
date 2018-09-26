@@ -93,18 +93,18 @@ abstract class Post_Base_Class extends Base_Class {
         if($this->cache_options['cache_acf_fields']) {
             $transient_key = '_frc_api_post_acf_field_' . $post_id;
             if(FRC::use_cache() || ($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
-                $acf_fields = (object) get_fields($post_id);
+                $acf_fields = get_fields($post_id);
 
-                $this->acf_fields = ($acf_fields) ? $acf_fields : [];
+                $this->acf_fields = (object) (($acf_fields) ? $acf_fields : []);
 
                 if(FRC::use_cache()) {
                     set_group_transient("post_" . $post_id, $transient_key, $this->acf_fields);
                 }
             }
         } else {
-            $acf_fields = (object) get_fields($post_id);
+            $acf_fields = get_fields($post_id);
 
-            $this->acf_fields = ($acf_fields) ? $acf_fields : [];
+            $this->acf_fields = (object) (($acf_fields) ? $acf_fields : []);
 
         }
     }
