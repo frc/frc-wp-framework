@@ -23,6 +23,8 @@ class FRC {
 
     public $acf_schema_register_queue;
 
+    public static $instance;
+
     public function __construct () {
         if(function_exists("acf_add_local_field_group")) {
             add_action('init', [$this, "setup_all"]);
@@ -42,13 +44,11 @@ class FRC {
     }
 
     static public function get_instance () {
-        global $frc_framework_instance;
-
-        if(!$frc_framework_instance) {
-            $frc_framework_instance = new self();
+        if(!self::$instance) {
+            self::$instance = new self();
         }
 
-        return $frc_framework_instance;
+        return self::$instance;
     }
 
     static public function boot () {
