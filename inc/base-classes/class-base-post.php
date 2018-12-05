@@ -33,10 +33,12 @@ abstract class Post_Base_Class extends Base_Class {
         if($post_id) {
             $this->cache_options = array_replace_recursive($this->cache_options, $cache_options);
 
+            $acf_schema_fields = array_merge($this->acf_schema, (!empty($this->acf_schema_groups['fields'])) ? $this->acf_schema_groups['fields'] : []);
+
             $this->remove_unused_post_data();
 
             //Construct the real post object
-            $this->construct_post_object($post_id);
+            $this->construct_post_object($post_id, $acf_schema_fields);
             $this->construct_default_components();
 
             $this->init();
@@ -51,7 +53,7 @@ abstract class Post_Base_Class extends Base_Class {
         }
     }
 
-    private function construct_post_object ($post_id) {
+    private function construct_post_object ($post_id, $acf_schema_fields) {
         $this->post_constructed = true;
 
         $transient_key = '_frc_api_post_object_' . $post_id;
@@ -69,7 +71,7 @@ abstract class Post_Base_Class extends Base_Class {
 
             $post = get_object_vars($post);
 
-            $this->construct_acf_fields($post_id);
+            $this->construct_acf_fields($post_id, $acf_schema_fields);
 
             $transient_data = ['post' => $post, 'acf_fields' => $this->acf_fields];
 
@@ -89,24 +91,48 @@ abstract class Post_Base_Class extends Base_Class {
         $this->meta_data        = $this->prepare_post_metadata($this->ID);
     }
 
-    public function construct_acf_fields ($post_id) {
+    public function construct_acf_fields ($post_id, $acf_schema_fields) {
         if($this->cache_options['cache_acf_fields']) {
             $transient_key = '_frc_api_post_acf_field_' . $post_id;
             if(FRC::use_cache() || ($this->acf_fields = get_transient($transient_key)) === false && function_exists('get_fields')) {
-                $acf_fields = get_fields($post_id);
-
-                $this->acf_fields = (object) (($acf_fields) ? $acf_fields : []);
+                $this->acf_fields = $this->get_acf_field_data($post_id, $acf_schema_fields);
 
                 if(FRC::use_cache()) {
                     set_group_transient("post_" . $post_id, $transient_key, $this->acf_fields);
                 }
             }
         } else {
-            $acf_fields = get_fields($post_id);
-
-            $this->acf_fields = (object) (($acf_fields) ? $acf_fields : []);
-
+            $this->acf_fields = $this->get_acf_field_data($post_id, $acf_schema_fields);
         }
+    }
+
+    public function get_acf_field_data ($post_id, $acf_schema_fields) {
+        $acf_fields = get_fields($post_id);
+
+        $acf_schema_fields = $this->get_acf_fields_from_schema($post_id, $acf_schema_fields);
+
+        if(!empty($acf_schema_fields)) {
+            $acf_fields = array_merge($acf_fields, $acf_schema_fields);
+        }
+
+        return (object) (($acf_fields) ? $acf_fields : []);
+    }
+
+    private function get_acf_fields_from_schema ($post_id, $acf_schema_fields) {
+        if(empty($acf_schema_fields)) {
+            return [];
+        }
+
+        $acf_data = [];
+        foreach($acf_schema_fields as $schema_data) {
+            if(empty($schema_data['name'])) {
+                continue;
+            }
+
+            $acf_data[$schema_data['name']] = get_field($schema_data['name'], $post_id);
+        }
+
+        return $acf_data;
     }
 
     public function construct_default_components () {
