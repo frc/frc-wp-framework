@@ -112,7 +112,7 @@ abstract class Post_Base_Class extends Base_Class {
         $acf_schema_fields = $this->get_acf_fields_from_schema($post_id, $acf_schema_fields);
 
         if(!empty($acf_schema_fields)) {
-            $acf_fields = array_merge($acf_fields, $acf_schema_fields);
+            $acf_fields = array_merge((empty($acf_fields)) ? [] : $acf_fields, $acf_schema_fields);
         }
 
         return (object) (($acf_fields) ? $acf_fields : []);
