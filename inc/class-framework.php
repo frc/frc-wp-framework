@@ -69,6 +69,13 @@ class FRC {
             if(get_post_status($post_id) != 'auto-draft')
                 return $value;
 
+            // Polylang default field hack for not creating the default fields if they already exist.
+            // If we have a more proper way of getting the information
+            // that we are creating a new translation, we should use that.
+            if(!empty($_GET['new_lang'])) {
+                return $value;
+            }
+
             $post_type = get_post_type($post_id);
 
             if(!isset($this->post_type_default_components[$post_type])) {
