@@ -121,7 +121,6 @@ function get_term ($term_id) {
             add_transient_to_group_list("terms", $transient_key);
         }
     }
-
     return $term_object;
 }
 

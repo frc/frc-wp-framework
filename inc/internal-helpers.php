@@ -2,7 +2,7 @@
 namespace FRC;
 
 function api_transient_name ($name) {
-    return $name . (function_exists("pll_current_language")) ? ' ' . pll_current_language() : '';
+    return $name . (function_exists("pll_current_language") ? ' ' . pll_current_language() : '');
 }
 
 function api_get_post_class_type ($post_id) {

@@ -38,9 +38,17 @@ class Term {
     }
 
     public function get_children () {
-        $children = [];
-        foreach(get_term_children($this->term_id, $this->taxonomy) as $child_term) {
-            $children[] = new Term($child_term);
+        $transient_key = '_frc_taxonomy_term_children_' . $this->term_id;
+        if((FRC::use_cache() && ($children = get_transient($transient_key)) === false) || !FRC::use_cache()) {
+            $children = [];
+
+            foreach (get_term_children($this->term_id, $this->taxonomy) as $child_term) {
+                $children[] = new Term($child_term);
+            }
+
+            set_transient($transient_key, $children);
+            add_transient_to_group_list('term_' . $this->term_id, $transient_key);
+            add_transient_to_group_list("terms", $transient_key);
         }
         return $children;
     }

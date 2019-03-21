@@ -47,7 +47,3 @@ class Query extends \WP_Query {
         return $query_result;
     }
 }
-
-add_action('save_post', function () {
-    delete_transients_in_group("wp_query");
-});
