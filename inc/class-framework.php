@@ -4,6 +4,8 @@ namespace FRC;
 class FRC {
     public $options;
 
+    public $reserved_keywords;
+
     public $component_data_locations;
 
     public $taxonomies;
@@ -56,6 +58,7 @@ class FRC {
     }
 
     public function setup_all () {
+        $this->setup_reserved_keywords();
         $this->setup_configurations();
         $this->setup_custom_taxonomies();
         $this->setup_post_types();
@@ -119,6 +122,12 @@ class FRC {
         set_options();
     }
 
+    public function setup_reserved_keywords () {
+        $wp = new \WP();
+
+        $this->reserved_keywords = array_merge($wp->public_query_vars, $wp->private_query_vars);
+    }
+
     public function setup_custom_taxonomies () {
         if(empty($this->taxonomy_classes))
             return;
@@ -170,6 +179,10 @@ class FRC {
 
                 if(empty($taxonomy_post_types))
                     continue;
+
+                if(in_array($taxonomy_name, $this->reserved_keywords)) {
+                    trigger_error("Your taxonomy name (" . $taxonomy_name . ") is a reserved keyword. Try a different name.", E_USER_ERROR);
+                }
 
                 register_taxonomy($taxonomy_name, $taxonomy_post_types, $taxonomy);
             }
