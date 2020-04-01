@@ -196,6 +196,8 @@ abstract class Post_Base_Class extends Base_Class {
                     unset($components[$key]);
                 }
             }
+
+            $components = array_values($components);
         }
 
         return $components;
