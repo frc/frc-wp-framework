@@ -346,7 +346,7 @@ class FRC {
         trigger_error("Errors in the definition of " . $class_name . ".", E_USER_ERROR);
     }
 
-    private function register_post_type_components ($post_type, $included_components, $proper_name, $class_name) {
+    public function register_post_type_components ($post_type, $included_components, $proper_name, $class_name) {
         if(empty($included_components))
             return;
 

@@ -1,7 +1,7 @@
 <?php
 namespace FRC;
 
-function FRC () {
+function FRC () : FRC {
     return FRC::get_instance();
 }
 
@@ -495,6 +495,8 @@ function flush_all_transients_in_groups () {
     foreach($results as $result) {
         delete_transients_in_group($result->group_name);
     }
+
+    $wpdb->query("DELETE FROM {$wpdb->prefix}frc_transient_data");
 }
 
 function add_transient_to_group_list_dependencies ($transient_group, $transient_key) {
